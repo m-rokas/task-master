@@ -20,26 +20,26 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface Subscription {
+interface UserWithSubscription {
   id: string;
-  user_id: string;
-  plan_id: string;
-  status: 'active' | 'canceled' | 'past_due' | 'trialing';
-  current_period_start: string;
-  current_period_end: string | null;
-  cancel_at_period_end: boolean;
-  stripe_customer_id: string | null;
-  stripe_subscription_id: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
   created_at: string;
-  profiles: {
-    full_name: string | null;
-    avatar_url: string | null;
-  };
+  plan_id: string | null;
   plans: {
     name: string;
     display_name: string;
     price_monthly: number;
-  };
+  } | null;
+  subscriptions: {
+    id: string;
+    status: 'active' | 'canceled' | 'past_due' | 'trialing';
+    current_period_start: string;
+    current_period_end: string | null;
+    cancel_at_period_end: boolean;
+    stripe_customer_id: string | null;
+    created_at: string;
+  }[] | null;
 }
 
 const statusConfig = {
@@ -47,6 +47,7 @@ const statusConfig = {
   canceled: { label: 'Canceled', color: 'bg-red-500/10 text-red-400', icon: XCircle },
   past_due: { label: 'Past Due', color: 'bg-yellow-500/10 text-yellow-400', icon: AlertCircle },
   trialing: { label: 'Trial', color: 'bg-blue-500/10 text-blue-400', icon: Clock },
+  free: { label: 'Free', color: 'bg-zinc-500/10 text-zinc-400', icon: User },
 };
 
 export default function SubscriptionManagement() {
@@ -57,46 +58,73 @@ export default function SubscriptionManagement() {
   const [actionMenu, setActionMenu] = useState<string | null>(null);
   const [trialDays, setTrialDays] = useState(14);
   const [showTrialModal, setShowTrialModal] = useState<string | null>(null);
-  const [showChangePlanModal, setShowChangePlanModal] = useState<Subscription | null>(null);
+  const [showChangePlanModal, setShowChangePlanModal] = useState<UserWithSubscription | null>(null);
   const [selectedPlanId, setSelectedPlanId] = useState<string>('');
   const perPage = 15;
 
-  // Fetch subscriptions
+  // Fetch all users with their subscription info
   const { data, isLoading } = useQuery({
     queryKey: ['admin-subscriptions', search, statusFilter, page],
     queryFn: async () => {
+      // Query profiles (all users) with their plan and subscription info
       let query = supabase
-        .from('subscriptions')
+        .from('profiles')
         .select(
           `
-          *,
-          profiles!subscriptions_user_id_fkey (full_name, avatar_url),
-          plans (name, display_name, price_monthly)
+          id,
+          full_name,
+          avatar_url,
+          created_at,
+          plan_id,
+          plans (name, display_name, price_monthly),
+          subscriptions (id, status, current_period_start, current_period_end, cancel_at_period_end, stripe_customer_id, created_at)
         `,
           { count: 'exact' }
         )
         .order('created_at', { ascending: false })
         .range((page - 1) * perPage, page * perPage - 1);
 
-      if (statusFilter !== 'all') {
-        query = query.eq('status', statusFilter);
-      }
-
       const { data, error, count } = await query;
       if (error) throw error;
 
-      // Filter by search if needed (client-side for name search)
-      let filtered = data as Subscription[];
+      // Process data and determine status
+      let users = (data as any[]).map(user => {
+        const subscription = Array.isArray(user.subscriptions) ? user.subscriptions[0] : user.subscriptions;
+        const plan = Array.isArray(user.plans) ? user.plans[0] : user.plans;
+        const planName = plan?.name || 'free';
+
+        // Determine effective status
+        let effectiveStatus: 'active' | 'canceled' | 'past_due' | 'trialing' | 'free' = 'free';
+        if (subscription) {
+          effectiveStatus = subscription.status;
+        } else if (planName === 'free' || !user.plan_id) {
+          effectiveStatus = 'free';
+        }
+
+        return {
+          ...user,
+          plans: plan,
+          subscription,
+          effectiveStatus,
+        };
+      });
+
+      // Filter by status
+      if (statusFilter !== 'all') {
+        users = users.filter(u => u.effectiveStatus === statusFilter);
+      }
+
+      // Filter by search
       if (search) {
         const searchLower = search.toLowerCase();
-        filtered = filtered.filter(
-          (sub) =>
-            sub.profiles?.full_name?.toLowerCase().includes(searchLower) ||
-            sub.plans?.display_name?.toLowerCase().includes(searchLower)
+        users = users.filter(
+          (u) =>
+            u.full_name?.toLowerCase().includes(searchLower) ||
+            u.plans?.display_name?.toLowerCase().includes(searchLower)
         );
       }
 
-      return { subscriptions: filtered, total: count || 0 };
+      return { users, total: count || 0 };
     },
   });
 
@@ -185,24 +213,29 @@ export default function SubscriptionManagement() {
 
   // Change plan
   const changePlan = useMutation({
-    mutationFn: async ({ subId, planId }: { subId: string; planId: string }) => {
-      const { error } = await supabase
-        .from('subscriptions')
-        .update({
-          plan_id: planId,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', subId);
-      if (error) throw error;
+    mutationFn: async ({ userId, planId }: { userId: string; planId: string }) => {
+      // Update profile's plan_id
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ plan_id: planId })
+        .eq('id', userId);
+      if (profileError) throw profileError;
 
-      // Also update user's profile plan_id
-      const sub = data?.subscriptions.find((s) => s.id === subId);
-      if (sub) {
-        await supabase
-          .from('profiles')
-          .update({ plan_id: planId })
-          .eq('id', sub.user_id);
-      }
+      // Update subscription if exists, or create one
+      const plan = plans?.find(p => p.id === planId);
+      const periodEnd = new Date();
+      periodEnd.setMonth(periodEnd.getMonth() + 1);
+
+      const { error: subError } = await supabase.from('subscriptions').upsert({
+        user_id: userId,
+        plan_id: planId,
+        status: plan?.price_monthly === 0 ? 'canceled' : 'active',
+        current_period_start: new Date().toISOString(),
+        current_period_end: periodEnd.toISOString(),
+        cancel_at_period_end: false,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+      if (subError) throw subError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-subscriptions'] });
@@ -213,11 +246,11 @@ export default function SubscriptionManagement() {
   // Extend trial
   const extendTrial = useMutation({
     mutationFn: async ({ subId, days }: { subId: string; days: number }) => {
-      const sub = data?.subscriptions.find((s) => s.id === subId);
-      if (!sub) throw new Error('Subscription not found');
+      const user = data?.users.find((u) => u.subscription?.id === subId);
+      if (!user?.subscription) throw new Error('Subscription not found');
 
-      const currentEnd = sub.current_period_end
-        ? new Date(sub.current_period_end)
+      const currentEnd = user.subscription.current_period_end
+        ? new Date(user.subscription.current_period_end)
         : new Date();
       currentEnd.setDate(currentEnd.getDate() + days);
 
@@ -238,12 +271,13 @@ export default function SubscriptionManagement() {
 
   const totalPages = Math.ceil((data?.total || 0) / perPage);
 
-  // Stats
+  // Stats - now counts by effectiveStatus
   const stats = {
-    active: data?.subscriptions.filter((s) => s.status === 'active').length || 0,
-    trialing: data?.subscriptions.filter((s) => s.status === 'trialing').length || 0,
-    canceled: data?.subscriptions.filter((s) => s.status === 'canceled').length || 0,
-    pastDue: data?.subscriptions.filter((s) => s.status === 'past_due').length || 0,
+    active: data?.users.filter((u: any) => u.effectiveStatus === 'active').length || 0,
+    trialing: data?.users.filter((u: any) => u.effectiveStatus === 'trialing').length || 0,
+    canceled: data?.users.filter((u: any) => u.effectiveStatus === 'canceled').length || 0,
+    pastDue: data?.users.filter((u: any) => u.effectiveStatus === 'past_due').length || 0,
+    free: data?.users.filter((u: any) => u.effectiveStatus === 'free').length || 0,
   };
 
   if (isLoading) {
@@ -264,7 +298,14 @@ export default function SubscriptionManagement() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+          <div className="flex items-center gap-2 text-zinc-400 mb-1">
+            <User className="h-4 w-4" />
+            <span className="text-sm">Free</span>
+          </div>
+          <p className="text-2xl font-bold text-white">{stats.free}</p>
+        </div>
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
           <div className="flex items-center gap-2 text-green-400 mb-1">
             <CheckCircle className="h-4 w-4" />
@@ -315,6 +356,7 @@ export default function SubscriptionManagement() {
             className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary"
           >
             <option value="all">All Status</option>
+            <option value="free">Free</option>
             <option value="active">Active</option>
             <option value="trialing">Trialing</option>
             <option value="canceled">Canceled</option>
@@ -349,17 +391,17 @@ export default function SubscriptionManagement() {
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800">
-            {data?.subscriptions.map((sub) => {
-              const status = statusConfig[sub.status];
+            {data?.users.map((user: any) => {
+              const status = statusConfig[user.effectiveStatus as keyof typeof statusConfig];
               const StatusIcon = status.icon;
               return (
-                <tr key={sub.id} className="hover:bg-zinc-800/50 transition-colors">
+                <tr key={user.id} className="hover:bg-zinc-800/50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center overflow-hidden">
-                        {sub.profiles?.avatar_url ? (
+                        {user.avatar_url ? (
                           <img
-                            src={sub.profiles.avatar_url}
+                            src={user.avatar_url}
                             alt=""
                             className="w-full h-full object-cover"
                           />
@@ -368,15 +410,15 @@ export default function SubscriptionManagement() {
                         )}
                       </div>
                       <span className="text-white font-medium">
-                        {sub.profiles?.full_name || 'Unknown User'}
+                        {user.full_name || 'Unknown User'}
                       </span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <div>
-                      <p className="text-white font-medium">{sub.plans?.display_name}</p>
+                      <p className="text-white font-medium">{user.plans?.display_name || 'Free'}</p>
                       <p className="text-xs text-zinc-500">
-                        €{sub.plans?.price_monthly}/mo
+                        {user.plans?.price_monthly === 0 || !user.plans ? 'Free' : `€${user.plans?.price_monthly}/mo`}
                       </p>
                     </div>
                   </td>
@@ -389,33 +431,33 @@ export default function SubscriptionManagement() {
                     >
                       <StatusIcon className="h-3 w-3" />
                       {status.label}
-                      {sub.cancel_at_period_end && sub.status === 'active' && (
+                      {user.subscription?.cancel_at_period_end && user.effectiveStatus === 'active' && (
                         <span className="text-yellow-400">(Canceling)</span>
                       )}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-zinc-400">
-                    {sub.current_period_end
-                      ? new Date(sub.current_period_end).toLocaleDateString()
+                    {user.subscription?.current_period_end
+                      ? new Date(user.subscription.current_period_end).toLocaleDateString()
                       : '-'}
                   </td>
                   <td className="px-6 py-4 text-zinc-400">
-                    {new Date(sub.created_at).toLocaleDateString()}
+                    {new Date(user.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="relative">
                       <button
-                        onClick={() => setActionMenu(actionMenu === sub.id ? null : sub.id)}
+                        onClick={() => setActionMenu(actionMenu === user.id ? null : user.id)}
                         className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-lg transition-colors"
                       >
                         <MoreVertical className="h-4 w-4" />
                       </button>
-                      {actionMenu === sub.id && (
+                      {actionMenu === user.id && (
                         <div className="absolute right-0 top-full mt-1 w-48 bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg z-10 py-1">
                           <button
                             onClick={() => {
-                              setShowChangePlanModal(sub);
-                              setSelectedPlanId(sub.plan_id);
+                              setShowChangePlanModal(user);
+                              setSelectedPlanId(user.plan_id || '');
                               setActionMenu(null);
                             }}
                             className="w-full px-4 py-2 text-left text-sm text-white hover:bg-zinc-700 flex items-center gap-2"
@@ -423,27 +465,36 @@ export default function SubscriptionManagement() {
                             <CreditCard className="h-4 w-4" />
                             Change Plan
                           </button>
-                          {sub.status === 'trialing' && (
+                          {user.effectiveStatus === 'free' && (
                             <button
-                              onClick={() => extendTrial.mutate({ subId: sub.id, days: 7 })}
+                              onClick={() => setShowTrialModal(user.id)}
+                              className="w-full px-4 py-2 text-left text-sm text-blue-400 hover:bg-zinc-700 flex items-center gap-2"
+                            >
+                              <Gift className="h-4 w-4" />
+                              Start Trial
+                            </button>
+                          )}
+                          {user.effectiveStatus === 'trialing' && user.subscription && (
+                            <button
+                              onClick={() => extendTrial.mutate({ subId: user.subscription.id, days: 7 })}
                               className="w-full px-4 py-2 text-left text-sm text-white hover:bg-zinc-700 flex items-center gap-2"
                             >
                               <Calendar className="h-4 w-4" />
                               Extend Trial +7 days
                             </button>
                           )}
-                          {sub.status === 'active' && !sub.cancel_at_period_end && (
+                          {user.effectiveStatus === 'active' && user.subscription && !user.subscription.cancel_at_period_end && (
                             <button
-                              onClick={() => cancelSubscription.mutate(sub.id)}
+                              onClick={() => cancelSubscription.mutate(user.subscription.id)}
                               className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-zinc-700 flex items-center gap-2"
                             >
                               <XCircle className="h-4 w-4" />
                               Cancel Subscription
                             </button>
                           )}
-                          {(sub.status === 'canceled' || sub.cancel_at_period_end) && (
+                          {user.subscription && (user.effectiveStatus === 'canceled' || user.subscription.cancel_at_period_end) && (
                             <button
-                              onClick={() => reactivateSubscription.mutate(sub.id)}
+                              onClick={() => reactivateSubscription.mutate(user.subscription.id)}
                               className="w-full px-4 py-2 text-left text-sm text-green-400 hover:bg-zinc-700 flex items-center gap-2"
                             >
                               <RefreshCw className="h-4 w-4" />
@@ -460,7 +511,7 @@ export default function SubscriptionManagement() {
           </tbody>
         </table>
 
-        {data?.subscriptions.length === 0 && (
+        {data?.users.length === 0 && (
           <div className="p-12 text-center">
             <CreditCard className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
             <p className="text-zinc-400">No subscriptions found</p>
@@ -503,7 +554,7 @@ export default function SubscriptionManagement() {
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-md p-6">
             <h2 className="text-xl font-bold text-white mb-2">Change Plan</h2>
             <p className="text-zinc-400 mb-4">
-              Change plan for {showChangePlanModal.profiles?.full_name}
+              Change plan for {showChangePlanModal.full_name}
             </p>
             <div className="space-y-2 mb-6">
               {plans?.map((plan) => (
@@ -536,7 +587,7 @@ export default function SubscriptionManagement() {
               <button
                 onClick={() =>
                   changePlan.mutate({
-                    subId: showChangePlanModal.id,
+                    userId: showChangePlanModal.id,
                     planId: selectedPlanId,
                   })
                 }
