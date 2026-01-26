@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TaskFlow Dashboard - Task Details</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-display overflow-hidden">
+<div class="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 md:p-10">
+<div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+<div class="relative w-full max-w-5xl max-h-full bg-white dark:bg-[#111318] rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-slate-200 dark:border-slate-800">
+<div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-blue-600 transition-colors">
+<span class="material-symbols-outlined text-lg">check_circle</span>
+                    Mark as Complete
+                </button>
+<div class="h-6 w-px bg-slate-200 dark:bg-slate-800"></div>
+<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined text-lg">share</span>
+<span class="material-symbols-outlined text-lg">more_horiz</span>
+</div>
+</div>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined text-2xl">close</span>
+</button>
+</div>
+<div class="flex flex-1 overflow-hidden">
+<div class="flex-1 overflow-y-auto p-8 no-scrollbar">
+<div class="max-w-3xl">
+<h1 class="text-3xl font-extrabold text-slate-900 dark:text-white mb-6">Update Brand Guidelines</h1>
+<div class="mb-8">
+<label class="block text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">Description</label>
+<div class="min-h-[200px] p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#1c1f27]">
+<div class="flex gap-4 border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
+<span class="material-symbols-outlined text-lg text-slate-400 cursor-pointer hover:text-primary">format_bold</span>
+<span class="material-symbols-outlined text-lg text-slate-400 cursor-pointer hover:text-primary">format_italic</span>
+<span class="material-symbols-outlined text-lg text-slate-400 cursor-pointer hover:text-primary">format_list_bulleted</span>
+<span class="material-symbols-outlined text-lg text-slate-400 cursor-pointer hover:text-primary">link</span>
+<span class="material-symbols-outlined text-lg text-slate-400 cursor-pointer hover:text-primary">image</span>
+</div>
+<p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                                We need to revise the core brand guidelines to reflect the new typography and color palette introduced in the Q3 redesign. Focus on the following areas:
+                            </p>
+<ul class="list-disc ml-5 mt-3 text-slate-600 dark:text-slate-300 text-sm space-y-1">
+<li>Update primary and secondary color hex codes.</li>
+<li>Replace Inter font with Manrope for all display headings.</li>
+<li>Refine the iconography style to 'outline' with a 2px stroke.</li>
+</ul>
+</div>
+</div>
+<div class="mb-8">
+<div class="flex items-center justify-between mb-4">
+<label class="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">checklist</span>
+                                Sub-tasks
+                            </label>
+<span class="text-xs font-bold text-primary">2/4 Done</span>
+</div>
+<div class="space-y-3">
+<div class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-[#1c1f27] transition-colors group">
+<input checked="" class="rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/>
+<span class="text-sm text-slate-500 line-through">Review current typography usage</span>
+</div>
+<div class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-[#1c1f27] transition-colors group">
+<input checked="" class="rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/>
+<span class="text-sm text-slate-500 line-through">Export new color swatches for Figma</span>
+</div>
+<div class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-[#1c1f27] transition-colors group">
+<input class="rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/>
+<span class="text-sm text-slate-700 dark:text-slate-300">Update logo spacing rules</span>
+</div>
+<div class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-[#1c1f27] transition-colors group">
+<input class="rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-800 dark:border-slate-700" type="checkbox"/>
+<span class="text-sm text-slate-700 dark:text-slate-300">Draft version 2.1 PDF</span>
+</div>
+</div>
+<button class="mt-2 text-primary text-xs font-bold flex items-center gap-1 hover:underline ml-3">
+<span class="material-symbols-outlined text-sm">add</span> Add sub-task
+                        </button>
+</div>
+<div class="border-t border-slate-200 dark:border-slate-800 pt-8">
+<label class="block text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Comments</label>
+<div class="space-y-6">
+<div class="flex gap-4">
+<div class="size-8 rounded-full bg-cover" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBOUEeduVFUVcEqqszd2csegqFEW1BvPTbjthJZ7k7XjZLlRRAYjg7-ScmC_mbyyIoEdUSG1wDUI6Nt781obAeZCngNENt2DfLNWWWC958lnfUYigRA_HMrO5RggCRoYOppzRi1wWpAPXPHxWuq3dDB5gBvbUXeobyFDVJKS4k_V9ck8cCkt3NWHs719YMCRds20rS8ILR5AJMtYV2dqpAAgm4rjuBRztN10W0M94vMhwOHe9PydVizaiPaESdBf6MtUPIb2Fna3Z6F');"></div>
+<div class="flex-1">
+<div class="bg-slate-50 dark:bg-[#1c1f27] p-3 rounded-xl rounded-tl-none">
+<div class="flex items-center justify-between mb-1">
+<span class="text-xs font-bold dark:text-white">Sarah Jenkins</span>
+<span class="text-[10px] text-slate-400">2 hours ago</span>
+</div>
+<p class="text-sm text-slate-600 dark:text-slate-400">I've uploaded the new vector assets for the brand colors. Let me know if you need specific formats.</p>
+</div>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="size-8 rounded-full bg-cover" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCmNpR4aCh0majFpxzeJtmuR0hiPUh_eNz6rC6XPYs-UBYz-xeeabs3Gwy3i1-HxWYhJFL-zl8PvQ2xx1-MLV0ovkKVSX0vQt9NjO5DwR_9Inuh6xzo7LCNwAe_KDYk36R6cGlIVVv-YN1TCAuZjDo0UbF_iz1vx3NpOznQaq37ySdJB-LCsh_7ZvXqVHqblU-7IMvVH8cO726dLrprZ2kjjPppNps_U7brXka1cQYAknoJwsVlfxZkj4qyJKhPoHZtz5T0yRs074sg');"></div>
+<div class="flex-1">
+<div class="relative">
+<textarea class="w-full rounded-xl border-slate-200 dark:border-slate-800 dark:bg-transparent text-sm focus:ring-primary focus:border-primary" placeholder="Write a comment..." rows="2"></textarea>
+<div class="absolute right-3 bottom-3 flex gap-2">
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-xl">attach_file</span></button>
+<button class="text-primary font-bold text-sm">Post</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="w-80 border-l border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-[#111318] p-6 space-y-8 overflow-y-auto">
+<div>
+<label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">Assignee</label>
+<div class="relative group">
+<button class="w-full flex items-center justify-between px-3 py-2 bg-white dark:bg-[#1c1f27] border border-slate-200 dark:border-slate-800 rounded-lg text-sm transition-shadow hover:shadow-sm">
+<div class="flex items-center gap-3">
+<div class="size-6 rounded-full bg-cover" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAGkVGtnaWzgXWSyHvpSVGy_ricPCONitILUXo0gmaAAFpPk-cZlGg-t3IqOQDuFsQTws4AyB_oH70hZGTa0dEB_cxBKfwWI67fYkXtFaSUGFlAdr0Isg9dnoSmYkNqLmZu0O-EBR70If3X0JvGlyI1dcCh4wAl2yFcYwYortMWUKeI_q6bJ-jrRb-JfI4-sMsjDsqec68l1n0uN5PktU3ZoGrZfmZg5DegbanwycjwW_hLPgX0tGcwsuxIjCVfvqOrmQZ1jt0cwERH');"></div>
+<span class="font-medium text-slate-700 dark:text-slate-300">Alex Rivera</span>
+</div>
+<span class="material-symbols-outlined text-slate-400">expand_more</span>
+</button>
+</div>
+</div>
+<div>
+<label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">Due Date</label>
+<button class="w-full flex items-center justify-between px-3 py-2 bg-white dark:bg-[#1c1f27] border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-700 dark:text-slate-300 hover:shadow-sm transition-shadow">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-lg text-slate-400">calendar_month</span>
+<span class="font-medium">Oct 28, 2023</span>
+</div>
+<span class="material-symbols-outlined text-slate-400">expand_more</span>
+</button>
+</div>
+<div>
+<label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">Priority</label>
+<button class="w-full flex items-center justify-between px-3 py-2 bg-white dark:bg-[#1c1f27] border border-slate-200 dark:border-slate-800 rounded-lg text-sm hover:shadow-sm transition-shadow">
+<div class="flex items-center gap-3">
+<span class="size-2 rounded-full bg-red-500"></span>
+<span class="font-medium text-slate-700 dark:text-slate-300">High</span>
+</div>
+<span class="material-symbols-outlined text-slate-400">expand_more</span>
+</button>
+</div>
+<div>
+<label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">Project Labels</label>
+<div class="space-y-2">
+<div class="flex flex-wrap gap-2 mb-3">
+<span class="px-2 py-1 bg-teal-500/10 text-teal-500 text-[10px] font-bold rounded uppercase">Design</span>
+<span class="px-2 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded uppercase">Branding</span>
+</div>
+<button class="w-full flex items-center justify-between px-3 py-2 bg-white dark:bg-[#1c1f27] border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+<span class="font-medium">Add labels...</span>
+<span class="material-symbols-outlined text-lg">add</span>
+</button>
+</div>
+</div>
+<div class="pt-8 mt-8 border-t border-slate-200 dark:border-slate-800 text-[10px] text-slate-400 font-medium space-y-1">
+<p>Created on Oct 12, 2023</p>
+<p>Last updated 1 hour ago</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<header class="sticky top-0 z-50 flex items-center justify-between border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111318] px-6 py-3 opacity-50 pointer-events-none">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-2xl">account_tree</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-xl font-extrabold leading-tight tracking-tight">TaskFlow</h2>
+</div>
+<label class="flex flex-col min-w-64 h-10">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full overflow-hidden bg-slate-100 dark:bg-[#282e39]">
+<div class="text-slate-500 dark:text-[#9da6b9] flex items-center justify-center pl-4">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full border-none bg-transparent focus:outline-0 focus:ring-0 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-[#9da6b9] px-3 text-sm font-normal" placeholder="Search tasks, projects..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold gap-2">
+<span class="material-symbols-outlined text-lg">add</span>
+<span class="truncate">Add Task</span>
+</button>
+<div class="flex items-center gap-2">
+<button class="relative flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-[#282e39] text-slate-600 dark:text-white">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+<div class="h-8 w-px bg-slate-200 dark:border-slate-800 mx-2"></div>
+<div class="flex items-center gap-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCmNpR4aCh0majFpxzeJtmuR0hiPUh_eNz6rC6XPYs-UBYz-xeeabs3Gwy3i1-HxWYhJFL-zl8PvQ2xx1-MLV0ovkKVSX0vQt9NjO5DwR_9Inuh6xzo7LCNwAe_KDYk36R6cGlIVVv-YN1TCAuZjDo0UbF_iz1vx3NpOznQaq37ySdJB-LCsh_7ZvXqVHqblU-7IMvVH8cO726dLrprZ2kjjPppNps_U7brXka1cQYAknoJwsVlfxZkj4qyJKhPoHZtz5T0yRs074sg");'></div>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden opacity-50 pointer-events-none">
+<aside class="w-64 hidden lg:flex flex-col justify-between border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111318] p-4">
+<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-1">
+<p class="px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">Navigation</p>
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-primary">grid_view</span>
+<p class="text-sm font-bold">Dashboard</p>
+</div>
+</div>
+</div>
+</aside>
+<main class="flex-1 flex flex-col min-w-0 bg-background-light dark:bg-background-dark overflow-y-auto">
+<div class="px-8 pt-8 pb-2 flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h1 class="text-2xl font-extrabold text-slate-900 dark:text-white">Website Redesign</h1>
+<p class="text-slate-500 dark:text-[#9da6b9] mt-1">Manage project tasks and team productivity</p>
+</div>
+</div>
+<div class="flex-1 p-8 overflow-x-auto no-scrollbar">
+<div class="flex gap-6 min-h-full h-auto items-start">
+<div class="flex flex-col w-80 shrink-0 bg-slate-200/50 dark:bg-white/5 rounded-xl p-3 border border-slate-200 dark:border-white/5">
+<div class="flex items-center justify-between mb-4 px-2">
+<h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">To Do</h3>
+</div>
+<div class="bg-white dark:bg-[#1c1f27] p-4 rounded-xl shadow-sm border border-slate-200 dark:border-white/5">
+<div class="w-full h-32 bg-slate-100 dark:bg-[#282e39] rounded-lg mb-3 bg-center bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAy1Ii-SkJOskoQkjN906uDa3nnIcTdmGtKgv8ioaN0X6XstIQnUJinNs5WFJ4g1BcjQEIzHCo1Y40I5ABzKDimP5reUnJgnif3NoxeVMoibgtWKiOWPk0ACGFDiO3Zv0at_0lMmtI2ozZjVdc5AlUMD1xjVDJgSARBvQtuzDU17dYMY-vXoamLsamJbRb_jLhZHbLe4VJmIp02rQJErLvZplj31Kkr0C7lJF_qe2XlUWPmS22cRFP0z4xiDMf3V_sUIeEzBDPP1QIB");'></div>
+<h4 class="text-slate-900 dark:text-white font-bold text-sm">Hero Section Illustration</h4>
+</div>
+</div>
+</div>
+</div>
+<footer class="mt-auto px-8 py-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500 dark:text-slate-500">
+<div class="flex items-center gap-6">
+<p class="text-xs font-medium">© 2023 TaskFlow Inc.</p>
+<a class="text-xs hover:text-primary transition-colors" href="#">Help Center</a>
+<a class="text-xs hover:text-primary transition-colors" href="#">Privacy Policy</a>
+</div>
+</footer>
+</main>
+</div>
+
+</body></html>

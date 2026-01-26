@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TaskMaster - Manage Tasks. Empower Teams.</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white transition-colors duration-300">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 w-full border-b border-solid border-slate-200 dark:border-[#282e39] bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-6 md:px-20 lg:px-40 py-3">
+<div class="max-w-[1200px] mx-auto flex items-center justify-between whitespace-nowrap">
+<div class="flex items-center gap-3">
+<div class="text-primary size-8 flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">task_alt</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-xl font-bold leading-tight tracking-[-0.015em]">TaskMaster</h2>
+</div>
+<div class="flex flex-1 justify-end gap-8 items-center">
+<nav class="hidden md:flex items-center gap-9">
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary text-sm font-medium leading-normal transition-colors" href="#features">Features</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary text-sm font-medium leading-normal transition-colors" href="#pricing">Pricing</a>
+</nav>
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-6 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-all">
+<span>Login</span>
+</button>
+</div>
+</div>
+</header>
+<main class="flex-1">
+<!-- Hero Section -->
+<section class="px-6 md:px-20 lg:px-40 py-12 md:py-20 flex justify-center" id="features">
+<div class="max-w-[1200px] flex-1">
+<div class="@container">
+<div class="@[480px]:p-4">
+<div class="relative flex min-h-[520px] flex-col gap-6 bg-cover bg-center bg-no-repeat @[480px]:gap-8 @[480px]:rounded-xl items-center justify-center p-8 overflow-hidden" data-alt="Modern abstract dark tech background with blue light pulses" style='background-image: linear-gradient(rgba(16, 22, 34, 0.85) 0%, rgba(16, 22, 34, 0.95) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuBkuH1oQZwYQpj5QoijEBiZ6eC1jjxHb1pTVmwaQiNFQJcZLceB8Wn9iokh-yc4wrvbreXPhfxdCyQG5LNQuMvThkM1dLc8fcmPPuCD71CDu7pVi5vd8FgXS2-xMFfJsmNvEAxNc0j8BXm0vixUP7SoszQgPxtWB2tj-MXyQDYvjPnoJl6XJ6E2wJ5AooUpKmVFjinRhH4LCxd_F6putc12ELGBccC_m9qJjPAdDocFHZiXhYgaTDuDP1_tWUP702Q1h38TQkB7t6M_");'>
+<div class="flex flex-col gap-4 text-center max-w-[720px] z-10">
+<h1 class="text-white text-4xl font-black leading-tight tracking-[-0.033em] @[480px]:text-6xl">
+                                        Manage Tasks. Empower Teams. Scale Faster.
+                                    </h1>
+<p class="text-slate-300 text-lg font-normal leading-relaxed @[480px]:text-xl">
+                                        The all-in-one platform to organize work, collaborate in real-time, and hit your deadlines with precision.
+                                    </p>
+</div>
+<button class="z-10 flex min-w-[200px] cursor-pointer items-center justify-center rounded-lg h-12 @[480px]:h-14 px-8 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] hover:scale-105 transition-transform shadow-lg shadow-primary/20">
+<span>Get Started for Free</span>
+</button>
+<!-- Decorative elements -->
+<div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+<div class="absolute top-[-10%] left-[-10%] w-1/2 h-1/2 bg-primary blur-[120px] rounded-full"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-1/2 h-1/2 bg-primary blur-[120px] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section Header -->
+<section class="px-6 md:px-20 lg:px-40 pt-16 flex justify-center" id="pricing">
+<div class="max-w-[1200px] flex-1 text-center">
+<h2 class="text-slate-900 dark:text-white text-3xl md:text-4xl font-bold leading-tight tracking-[-0.015em] px-4">Choose the Right Plan for Your Team</h2>
+<p class="text-slate-500 dark:text-slate-400 mt-4 text-lg">Flexible options for startups and enterprises alike.</p>
+</div>
+</section>
+<!-- Pricing Cards Section -->
+<section class="px-6 md:px-20 lg:px-40 py-12 flex justify-center">
+<div class="max-w-[1200px] flex-1">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 px-4 py-3">
+<!-- Free Plan -->
+<div class="flex flex-1 flex-col gap-6 rounded-xl border border-solid border-slate-200 dark:border-[#3b4354] bg-white dark:bg-[#1c1f27] p-8 hover:border-primary/50 transition-colors group">
+<div class="flex flex-col gap-1">
+<h3 class="text-slate-900 dark:text-white text-xl font-bold leading-tight">Free</h3>
+<p class="flex items-baseline gap-1 text-slate-900 dark:text-white mt-2">
+<span class="text-4xl font-black leading-tight tracking-[-0.033em]">$0</span>
+<span class="text-base font-bold leading-tight text-slate-500 dark:text-slate-400">/month</span>
+</p>
+</div>
+<button class="flex w-full cursor-pointer items-center justify-center rounded-lg h-12 px-4 bg-slate-100 dark:bg-[#282e39] text-slate-900 dark:text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+<span>Start Trial</span>
+</button>
+<div class="flex flex-col gap-4">
+<div class="text-sm font-normal leading-normal flex gap-3 text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+                                    Up to 3 projects
+                                </div>
+<div class="text-sm font-normal leading-normal flex gap-3 text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+                                    Basic task tracking
+                                </div>
+<div class="text-sm font-normal leading-normal flex gap-3 text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+                                    5MB file uploads
+                                </div>
+</div>
+</div>
+<!-- Pro Plan (Featured) -->
+<div class="flex flex-1 flex-col gap-6 rounded-xl border-2 border-solid border-primary bg-white dark:bg-[#1c1f27] p-8 relative shadow-2xl shadow-primary/10 transform md:scale-105 z-10">
+<div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold py-1 px-4 rounded-full uppercase tracking-wider">
+                                Most Popular
+                            </div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<h3 class="text-slate-900 dark:text-white text-xl font-bold leading-tight">Pro</h3>
+</div>
+<p class="flex items-baseline gap-1 text-slate-900 dark:text-white mt-2">
+<span class="text-4xl font-black leading-tight tracking-[-0.033em]">$19</span>
+<span class="text-base font-bold leading-tight text-slate-500 dark:text-slate-400">/month</span>
+</p>
+</div>
+<button class="flex w-full cursor-pointer items-center justify-center rounded-lg h-12 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-all shadow-md">
+<span>Start Trial</span>
+</button>
+<div class="flex flex-col gap-4">
+<div class="text-sm font-normal leading-normal flex gap-3 text-slate-600 dark:text-slate-300 font-bold">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+                                    Unlimited projects
+                                </div>
+<div class="text-sm font-normal leading-normal flex gap-3 text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+                                    Gantt charts &amp; Timelines
+                                </div>
+<div class="text-sm font-normal leading-normal flex gap-3 text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+                                    10GB storage
+                                </div>
+<div class="text-sm font-normal leading-normal flex gap-3 text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+                                    Priority support
+                                </div>
+<div class="text-sm font-normal leading-normal flex gap-3 text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+                                    Advanced Automations
+                                </div>
+</div>
+</div>
+<!-- Business Plan -->
+<div class="flex flex-1 flex-col gap-6 rounded-xl border border-solid border-slate-200 dark:border-[#3b4354] bg-white dark:bg-[#1c1f27] p-8 hover:border-primary/50 transition-colors group">
+<div class="flex flex-col gap-1">
+<h3 class="text-slate-900 dark:text-white text-xl font-bold leading-tight">Business</h3>
+<p class="flex items-baseline gap-1 text-slate-900 dark:text-white mt-2">
+<span class="text-4xl font-black leading-tight tracking-[-0.033em]">$49</span>
+<span class="text-base font-bold leading-tight text-slate-500 dark:text-slate-400">/month</span>
+</p>
+</div>
+<button class="flex w-full cursor-pointer items-center justify-center rounded-lg h-12 px-4 bg-slate-100 dark:bg-[#282e39] text-slate-900 dark:text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+<span>Start Trial</span>
+</button>
+<div class="flex flex-col gap-4">
+<div class="text-sm font-normal leading-normal flex gap-3 text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+                                    Team analytics
+                                </div>
+<div class="text-sm font-normal leading-normal flex gap-3 text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+                                    Custom workflows
+                                </div>
+<div class="text-sm font-normal leading-normal flex gap-3 text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+                                    SSO &amp; Security
+                                </div>
+<div class="text-sm font-normal leading-normal flex gap-3 text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+                                    Dedicated manager
+                                </div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-white dark:bg-background-dark border-t border-slate-200 dark:border-[#282e39] px-6 md:px-20 lg:px-40 py-16">
+<div class="max-w-[1200px] mx-auto flex flex-col gap-10">
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
+<div class="col-span-2">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary text-3xl">task_alt</span>
+<h2 class="text-slate-900 dark:text-white text-xl font-bold">TaskMaster</h2>
+</div>
+<p class="text-slate-500 dark:text-[#9da6b9] text-sm leading-relaxed max-w-xs">
+                            The next generation of task management for high-performing teams. Work smarter, not harder.
+                        </p>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="text-slate-900 dark:text-white font-bold text-sm uppercase tracking-wider">Product</h4>
+<a class="text-slate-500 dark:text-[#9da6b9] text-sm hover:text-primary transition-colors" href="#">Features</a>
+<a class="text-slate-500 dark:text-[#9da6b9] text-sm hover:text-primary transition-colors" href="#">Roadmap</a>
+<a class="text-slate-500 dark:text-[#9da6b9] text-sm hover:text-primary transition-colors" href="#">API</a>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="text-slate-900 dark:text-white font-bold text-sm uppercase tracking-wider">Company</h4>
+<a class="text-slate-500 dark:text-[#9da6b9] text-sm hover:text-primary transition-colors" href="#">About</a>
+<a class="text-slate-500 dark:text-[#9da6b9] text-sm hover:text-primary transition-colors" href="#">Careers</a>
+<a class="text-slate-500 dark:text-[#9da6b9] text-sm hover:text-primary transition-colors" href="#">Blog</a>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="text-slate-900 dark:text-white font-bold text-sm uppercase tracking-wider">Legal</h4>
+<a class="text-slate-500 dark:text-[#9da6b9] text-sm hover:text-primary transition-colors" href="#">Privacy</a>
+<a class="text-slate-500 dark:text-[#9da6b9] text-sm hover:text-primary transition-colors" href="#">Terms</a>
+<a class="text-slate-500 dark:text-[#9da6b9] text-sm hover:text-primary transition-colors" href="#">Cookies</a>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="text-slate-900 dark:text-white font-bold text-sm uppercase tracking-wider">Support</h4>
+<a class="text-slate-500 dark:text-[#9da6b9] text-sm hover:text-primary transition-colors" href="#">Help Center</a>
+<a class="text-slate-500 dark:text-[#9da6b9] text-sm hover:text-primary transition-colors" href="#">Community</a>
+</div>
+</div>
+<div class="pt-10 border-t border-slate-200 dark:border-[#282e39] flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex gap-6">
+<a class="text-slate-400 dark:text-[#9da6b9] hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">public</span>
+</a>
+<a class="text-slate-400 dark:text-[#9da6b9] hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">alternate_email</span>
+</a>
+<a class="text-slate-400 dark:text-[#9da6b9] hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">hub</span>
+</a>
+<a class="text-slate-400 dark:text-[#9da6b9] hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">code</span>
+</a>
+</div>
+<p class="text-slate-500 dark:text-[#9da6b9] text-sm font-normal">© 2024 TaskMaster Inc. All rights reserved.</p>
+</div>
+</div>
+</footer>
+</div>
+</body></html>

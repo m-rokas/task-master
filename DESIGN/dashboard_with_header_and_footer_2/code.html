@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TaskFlow Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        /* Hide scrollbar for cleaner Kanban look */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-display">
+<!-- TopNavBar -->
+<header class="sticky top-0 z-50 flex items-center justify-between border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111318] px-6 py-3">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-2xl">account_tree</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-xl font-extrabold leading-tight tracking-tight">TaskFlow</h2>
+</div>
+<label class="flex flex-col min-w-64 h-10">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full overflow-hidden bg-slate-100 dark:bg-[#282e39]">
+<div class="text-slate-500 dark:text-[#9da6b9] flex items-center justify-center pl-4">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full border-none bg-transparent focus:outline-0 focus:ring-0 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-[#9da6b9] px-3 text-sm font-normal" placeholder="Search tasks, projects..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold gap-2 transition-opacity hover:opacity-90">
+<span class="material-symbols-outlined text-lg">add</span>
+<span class="truncate">Add Task</span>
+</button>
+<div class="flex items-center gap-2">
+<button class="relative flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-[#282e39] text-slate-600 dark:text-white transition-colors hover:bg-slate-200 dark:hover:bg-slate-700">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2.5 size-2 bg-red-500 rounded-full border-2 border-white dark:border-[#111318]"></span>
+</button>
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-[#282e39] text-slate-600 dark:text-white transition-colors hover:bg-slate-200 dark:hover:bg-slate-700">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<div class="h-8 w-px bg-slate-200 dark:border-slate-800 mx-2"></div>
+<div class="flex items-center gap-3">
+<div class="text-right hidden md:block">
+<p class="text-sm font-bold text-slate-900 dark:text-white">Alex Rivera</p>
+<p class="text-xs text-slate-500 dark:text-[#9da6b9]">Admin</p>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary" data-alt="User profile photo showing a smiling professional man" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCmNpR4aCh0majFpxzeJtmuR0hiPUh_eNz6rC6XPYs-UBYz-xeeabs3Gwy3i1-HxWYhJFL-zl8PvQ2xx1-MLV0ovkKVSX0vQt9NjO5DwR_9Inuh6xzo7LCNwAe_KDYk36R6cGlIVVv-YN1TCAuZjDo0UbF_iz1vx3NpOznQaq37ySdJB-LCsh_7ZvXqVHqblU-7IMvVH8cO726dLrprZ2kjjPppNps_U7brXka1cQYAknoJwsVlfxZkj4qyJKhPoHZtz5T0yRs074sg");'></div>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- SideNavBar -->
+<aside class="w-64 hidden lg:flex flex-col justify-between border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111318] p-4">
+<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-1">
+<p class="px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">Navigation</p>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary group" href="#">
+<span class="material-symbols-outlined text-primary" data-icon="List">grid_view</span>
+<p class="text-sm font-bold leading-normal">Dashboard</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-[#9da6b9] hover:bg-slate-50 dark:hover:bg-[#282e39] hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">check_circle</span>
+<p class="text-sm font-medium leading-normal">My Tasks</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-[#9da6b9] hover:bg-slate-50 dark:hover:bg-[#282e39] hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">folder</span>
+<p class="text-sm font-medium leading-normal">Projects</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-[#9da6b9] hover:bg-slate-50 dark:hover:bg-[#282e39] hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<p class="text-sm font-medium leading-normal">Calendar</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-[#9da6b9] hover:bg-slate-50 dark:hover:bg-[#282e39] hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">group</span>
+<p class="text-sm font-medium leading-normal">Team</p>
+</a>
+</div>
+<div class="flex flex-col gap-1">
+<p class="px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">Pinned Projects</p>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-[#9da6b9] hover:bg-slate-50 dark:hover:bg-[#282e39]" href="#">
+<span class="size-2 rounded-full bg-teal-400"></span>
+<p class="text-sm font-medium">Website Redesign</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-[#9da6b9] hover:bg-slate-50 dark:hover:bg-[#282e39]" href="#">
+<span class="size-2 rounded-full bg-amber-400"></span>
+<p class="text-sm font-medium">Mobile App</p>
+</a>
+</div>
+</div>
+<div class="flex flex-col gap-1 border-t border-slate-200 dark:border-slate-800 pt-4">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-[#9da6b9] hover:bg-slate-50 dark:hover:bg-[#282e39]" href="#">
+<span class="material-symbols-outlined">help</span>
+<p class="text-sm font-medium leading-normal">Help Center</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<p class="text-sm font-medium leading-normal">Logout</p>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col min-w-0 bg-background-light dark:bg-background-dark overflow-y-auto">
+<!-- Dashboard Title & Filters -->
+<div class="px-8 pt-8 pb-2 flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h1 class="text-2xl font-extrabold text-slate-900 dark:text-white">Website Redesign</h1>
+<p class="text-slate-500 dark:text-[#9da6b9] mt-1">Manage project tasks and team productivity</p>
+</div>
+<!-- Tabs Component -->
+<div class="flex border-b border-slate-200 dark:border-[#3b4354] gap-6">
+<a class="flex flex-col items-center justify-center border-b-[2px] border-primary text-primary pb-2" href="#">
+<p class="text-sm font-bold leading-normal tracking-tight">Kanban Board</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[2px] border-transparent text-slate-500 dark:text-[#9da6b9] pb-2 hover:text-slate-700 dark:hover:text-white transition-all" href="#">
+<p class="text-sm font-bold leading-normal tracking-tight">List View</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[2px] border-transparent text-slate-500 dark:text-[#9da6b9] pb-2 hover:text-slate-700 dark:hover:text-white transition-all" href="#">
+<p class="text-sm font-bold leading-normal tracking-tight">Timeline</p>
+</a>
+</div>
+</div>
+<!-- Kanban Board -->
+<div class="flex-1 p-8 overflow-x-auto no-scrollbar">
+<div class="flex gap-6 min-h-full h-auto items-start">
+<!-- Column: To Do -->
+<div class="flex flex-col w-80 shrink-0 bg-slate-200/50 dark:bg-white/5 rounded-xl p-3 border border-slate-200 dark:border-white/5">
+<div class="flex items-center justify-between mb-4 px-2">
+<div class="flex items-center gap-2">
+<h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">To Do</h3>
+<span class="bg-slate-300 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded-full">3</span>
+</div>
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">more_horiz</span>
+</button>
+</div>
+<div class="flex flex-col gap-3">
+<!-- Task Card 1 -->
+<div class="bg-white dark:bg-[#1c1f27] p-4 rounded-xl shadow-sm border border-slate-200 dark:border-white/5 group cursor-grab active:cursor-grabbing">
+<div class="w-full h-32 bg-slate-100 dark:bg-[#282e39] rounded-lg mb-3 bg-center bg-cover" data-alt="Geometric dark background pattern" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAy1Ii-SkJOskoQkjN906uDa3nnIcTdmGtKgv8ioaN0X6XstIQnUJinNs5WFJ4g1BcjQEIzHCo1Y40I5ABzKDimP5reUnJgnif3NoxeVMoibgtWKiOWPk0ACGFDiO3Zv0at_0lMmtI2ozZjVdc5AlUMD1xjVDJgSARBvQtuzDU17dYMY-vXoamLsamJbRb_jLhZHbLe4VJmIp02rQJErLvZplj31Kkr0C7lJF_qe2XlUWPmS22cRFP0z4xiDMf3V_sUIeEzBDPP1QIB");'></div>
+<div class="flex flex-col gap-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-primary/10 text-primary w-fit uppercase tracking-tight">Design</span>
+<h4 class="text-slate-900 dark:text-white font-bold text-sm">Hero Section Illustration</h4>
+<p class="text-xs text-slate-500 dark:text-[#9da6b9] line-clamp-2">Create custom SVG characters for the landing page hero section.</p>
+<div class="flex items-center justify-between mt-2 pt-3 border-t border-slate-100 dark:border-white/5">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white dark:border-[#1c1f27] bg-cover" data-alt="Avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAGkVGtnaWzgXWSyHvpSVGy_ricPCONitILUXo0gmaAAFpPk-cZlGg-t3IqOQDuFsQTws4AyB_oH70hZGTa0dEB_cxBKfwWI67fYkXtFaSUGFlAdr0Isg9dnoSmYkNqLmZu0O-EBR70If3X0JvGlyI1dcCh4wAl2yFcYwYortMWUKeI_q6bJ-jrRb-JfI4-sMsjDsqec68l1n0uN5PktU3ZoGrZfmZg5DegbanwycjwW_hLPgX0tGcwsuxIjCVfvqOrmQZ1jt0cwERH");'></div>
+<div class="size-6 rounded-full border-2 border-white dark:border-[#1c1f27] bg-cover" data-alt="Avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAFkZpuYnfA31uF_vydgxTaS5XPYgB20tZJTciozdsuMtH6epS-8XsZfG_dixpeAKOVKqsv_DwBapG-OopN_Y69yKQpZIdP4Ox5RH94qgdc5Q3mqb1rvsoGpFBZMNDgGCP5d7IQlKOQdyKS_bza9TtkD8SAOgdxxtD3RWl05jDzaKUtXQPxRA91acoZmqKGvWavQYiRiK_xZ6v_Cikje9B3MqveWq8qAFtKIb_y5HCI93U_uN-C4I27FAc4E8GuilSWJG21ExK19QUJ");'></div>
+</div>
+<div class="flex items-center gap-3 text-slate-400">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">chat_bubble_outline</span>
+<span class="text-[10px]">12</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">attach_file</span>
+<span class="text-[10px]">4</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Task Card 2 -->
+<div class="bg-white dark:bg-[#1c1f27] p-4 rounded-xl shadow-sm border border-slate-200 dark:border-white/5 cursor-grab">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-500 w-fit uppercase tracking-tight">Medium Priority</span>
+<h4 class="text-slate-900 dark:text-white font-bold text-sm mt-2">API Documentation Setup</h4>
+<div class="flex items-center justify-between mt-4">
+<div class="size-6 rounded-full bg-cover" data-alt="Avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDZQoR4k0shZRXjR_tNbOYrZwSJP6Kifecfgz8Z_HbbdPFqjCv-C5_QldvnffUnh52bdWj7kj_7mJzXZkZLiNUsffy7qHdcNs_MGmM8EbqBuh130WZFG7vDveTLvZs_VsAIzxFTXc8jKvLtqbhEd_WR6NlQYNDFc1a5Hjx0jhAGp7mIRhXT-krvI-sPAJvL1FSlzF5lkU3qa_En2cTOTK1jm7V_LdmAe8QBT54BEw4Lc12EWQfmYkBfmpH18M8dFMCqAGPzc2Z5tEac");'></div>
+<div class="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">event</span>
+                                        Oct 24
+                                    </div>
+</div>
+</div>
+</div>
+<button class="mt-4 flex items-center justify-center gap-2 p-3 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary bg-transparent border border-dashed border-slate-300 dark:border-slate-700 rounded-lg transition-all text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-lg">add</span>
+                            Add Card
+                        </button>
+</div>
+<!-- Column: In Progress -->
+<div class="flex flex-col w-80 shrink-0 bg-slate-200/50 dark:bg-white/5 rounded-xl p-3 border border-slate-200 dark:border-white/5">
+<div class="flex items-center justify-between mb-4 px-2">
+<div class="flex items-center gap-2">
+<h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">In Progress</h3>
+<span class="bg-primary/20 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full">2</span>
+</div>
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">more_horiz</span>
+</button>
+</div>
+<div class="flex flex-col gap-3">
+<div class="bg-white dark:bg-[#1c1f27] p-4 rounded-xl shadow-sm border-l-4 border-l-primary border-y border-r border-slate-200 dark:border-white/5 cursor-grab">
+<div class="flex justify-between items-start mb-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/10 text-red-500 uppercase tracking-tight">High Priority</span>
+<span class="text-[10px] font-bold text-slate-400">75%</span>
+</div>
+<h4 class="text-slate-900 dark:text-white font-bold text-sm">Responsive Mobile Testing</h4>
+<div class="w-full h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full mt-3 overflow-hidden">
+<div class="h-full bg-primary" style="width: 75%"></div>
+</div>
+<div class="flex items-center justify-between mt-4">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white dark:border-[#1c1f27] bg-cover" data-alt="Avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB6k8yYSKBzcF2nbc0NbIg334HXDXwCIy1SayXTnpmOns-2A2KAkR2QSh671akMAVVcOomDXKfMODynOa7bnfnimRlDQOL5N9Dj3Yy-5yXQWiZiUKRSbB_JVc2f3l48x82aXmA914Jm4YM6WZCqr4zsyyvXehoM6wrfYH75b3lFCtMYKn_uVO1P2L_K1cnA1m_6ryT598QU7fhyhgqI13T5LWSoiPg_cL0R80cNfi0qGMB1ydeCoeA0kHZOB_iD0zEYYKp3CKHylrTr");'></div>
+<div class="size-6 rounded-full border-2 border-white dark:border-[#1c1f27] bg-cover" data-alt="Avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBOUEeduVFUVcEqqszd2csegqFEW1BvPTbjthJZ7k7XjZLlRRAYjg7-ScmC_mbyyIoEdUSG1wDUI6Nt781obAeZCngNENt2DfLNWWWC958lnfUYigRA_HMrO5RggCRoYOppzRi1wWpAPXPHxWuq3dDB5gBvbUXeobyFDVJKS4k_V9ck8cCkt3NWHs719YMCRds20rS8ILR5AJMtYV2dqpAAgm4rjuBRztN10W0M94vMhwOHe9PydVizaiPaESdBf6MtUPIb2Fna3Z6F");'></div>
+</div>
+<div class="flex items-center gap-1 text-slate-400 text-[10px] font-bold">
+<span class="material-symbols-outlined text-[14px]">calendar_month</span>
+                                        Oct 21
+                                    </div>
+</div>
+</div>
+</div>
+<button class="mt-4 flex items-center justify-center gap-2 p-3 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary bg-transparent border border-dashed border-slate-300 dark:border-slate-700 rounded-lg transition-all text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-lg">add</span>
+                            Add Card
+                        </button>
+</div>
+<!-- Column: Review -->
+<div class="flex flex-col w-80 shrink-0 bg-slate-200/50 dark:bg-white/5 rounded-xl p-3 border border-slate-200 dark:border-white/5">
+<div class="flex items-center justify-between mb-4 px-2">
+<div class="flex items-center gap-2">
+<h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Review</h3>
+<span class="bg-teal-500/20 text-teal-500 text-[10px] font-bold px-2 py-0.5 rounded-full">1</span>
+</div>
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">more_horiz</span>
+</button>
+</div>
+<div class="bg-white dark:bg-[#1c1f27] p-4 rounded-xl shadow-sm border border-slate-200 dark:border-white/5 cursor-grab opacity-70">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-500/10 text-slate-500 uppercase tracking-tight">Backend</span>
+<h4 class="text-slate-900 dark:text-white font-bold text-sm mt-2">Auth Module Refactor</h4>
+<div class="flex items-center justify-between mt-4">
+<div class="size-6 rounded-full bg-cover" data-alt="Avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBhCkwtMHq8gmNknCtp-ODHuijyvRzo5qxOLN5FAexMnA_O5Tu_p5vvXXXl8QPwVQXMzaRqgzUkvGHTNavjjsEw72xuczHJTqbs9NAxeug5GVbI4QZn6Sz6l3k6LtF0wrBuugeCFx0Qjc4RGWgr7vJrcW7ms_aTEa_IfW_cnA0SMZNx4yusAsPK2k4nNwoCXvPyrMbge37_U-fp105_W0KFRwnqoxjhqCmQwYC5VEJH33ayuPUl19N_paGH3V_c2mZ-_nITUoOUUsCb");'></div>
+<div class="text-[10px] font-bold text-teal-500 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] fill-1">check_circle</span>
+                                    Wait for Lead
+                                </div>
+</div>
+</div>
+</div>
+<!-- Column: Done -->
+<div class="flex flex-col w-80 shrink-0 bg-slate-200/50 dark:bg-white/5 rounded-xl p-3 border border-slate-200 dark:border-white/5">
+<div class="flex items-center justify-between mb-4 px-2">
+<div class="flex items-center gap-2">
+<h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Done</h3>
+<span class="bg-slate-300 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded-full">42</span>
+</div>
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">more_horiz</span>
+</button>
+</div>
+<div class="bg-white dark:bg-[#1c1f27] p-4 rounded-xl shadow-sm border border-slate-200 dark:border-white/5 cursor-grab">
+<h4 class="text-slate-500 dark:text-slate-400 font-bold text-sm line-through">Project Discovery Phase</h4>
+<div class="flex items-center justify-between mt-4">
+<div class="size-6 rounded-full bg-cover grayscale opacity-50" data-alt="Avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBHFiQUDfN9X4TpIuZ_enRoyYkpMJ9g9vG74yqTuVKJ7fr0QPop24k9venN4gFm2opZJ2gUzbl_NsWmk68hFL47J7TelMHmD0v0iwZu3O_xg0sysWabClMC20zXr1jFLEMpTFoj7BozKR9qcXkeEnPE4EAROdJ2zgUIqUYAlxAOLvVyACLuf_AZ2MvlDT5p2U-Pjx3Tz3JArZpQIH1kNy6nM2l1k9-Mg7-KphEon1WdXs-I_AsZ4Q8qdBXMlKgrED9zgSycAxqr-Ipa");'></div>
+<div class="text-[10px] font-bold text-green-500 flex items-center gap-1 bg-green-500/10 px-2 py-0.5 rounded">
+<span class="material-symbols-outlined text-[14px] font-bold">done_all</span>
+                                    Completed
+                                </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<footer class="mt-auto px-8 py-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500 dark:text-slate-500">
+<div class="flex items-center gap-6">
+<p class="text-xs font-medium">© 2023 TaskFlow Inc.</p>
+<div class="h-3 w-px bg-slate-200 dark:bg-slate-800"></div>
+<a class="text-xs hover:text-primary transition-colors" href="#">Help Center</a>
+<a class="text-xs hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="text-xs hover:text-primary transition-colors" href="#">Terms of Service</a>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-xs">v2.4.1-stable</span>
+<div class="flex items-center gap-1 px-2 py-1 rounded bg-green-500/10 text-green-500 text-[10px] font-bold">
+<span class="size-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                        SYSTEM ONLINE
+                    </div>
+</div>
+</footer>
+</main>
+</div>
+</body></html>

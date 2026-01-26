@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Register | TaskMaster</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-white font-display antialiased">
+<div class="flex min-h-screen w-full">
+<!-- Left Side: Marketing/Value Prop (Hero Section Style) -->
+<div class="hidden lg:flex lg:w-1/2 relative flex-col justify-center items-center p-12 bg-cover bg-center overflow-hidden" data-alt="Abstract dark workspace dashboard interface with neon accents" style='background-image: linear-gradient(rgba(16, 22, 34, 0.8), rgba(16, 22, 34, 0.9)), url("https://lh3.googleusercontent.com/aida-public/AB6AXuBmCUBMTD4taPdak61hSP_BlLFG5RUA21FAk9vuQecjoCqrciieFwpL-HAkcxxNX6cy4P_gx57W1UgX3JrliU6OTN7QUbHW7WVj3hn-rUGMmU0yHcHEZdRNisg5-ste-2FWN0mE1vYmaVFibpd66R0Q5e_Tz7A-71IrIsh8ch2A1IbXhrKdqqpTDTG2zixN3HhnFMhh72iHmRsr0MVu2SOhcNFaojiGS3fzu34_IG7meZBRz5CTpGzTqJ0yW_jme_X-0oNsiYOMYCP8");'>
+<div class="absolute top-10 left-10 flex items-center gap-2">
+<div class="bg-primary p-2 rounded-lg">
+<span class="material-symbols-outlined text-white">task_alt</span>
+</div>
+<span class="text-2xl font-black tracking-tight text-white">TaskMaster</span>
+</div>
+<div class="max-w-md w-full space-y-8 z-10">
+<div class="space-y-4">
+<h1 class="text-5xl font-black leading-tight tracking-[-0.033em] text-white">
+                        Master your productivity.
+                    </h1>
+<p class="text-lg text-[#9da6b9] font-normal leading-relaxed">
+                        Organize your workflow, collaborate with ease, and track progress in real-time. Join 10,000+ high-performing teams.
+                    </p>
+</div>
+<div class="grid grid-cols-1 gap-6">
+<div class="flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
+<div class="text-primary mt-1">
+<span class="material-symbols-outlined">rocket_launch</span>
+</div>
+<div>
+<h3 class="font-bold text-white">Organize your workflow</h3>
+<p class="text-sm text-[#9da6b9]">Customizable boards and list views for every project type.</p>
+</div>
+</div>
+<div class="flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
+<div class="text-primary mt-1">
+<span class="material-symbols-outlined">groups</span>
+</div>
+<div>
+<h3 class="font-bold text-white">Collaborate with ease</h3>
+<p class="text-sm text-[#9da6b9]">Real-time comments, file sharing, and team permissions.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="absolute -bottom-20 -left-20 w-96 h-96 bg-primary/20 rounded-full blur-[120px]"></div>
+</div>
+<!-- Right Side: Registration Form -->
+<div class="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 sm:p-12 bg-background-light dark:bg-background-dark">
+<div class="w-full max-w-[480px] space-y-8">
+<!-- Page Heading -->
+<div class="flex flex-col gap-3">
+<h2 class="text-white tracking-light text-[32px] font-bold leading-tight">Create your account</h2>
+<p class="text-[#9da6b9] text-sm font-normal leading-normal">Join over 10,000 teams managing work effectively.</p>
+</div>
+<!-- Registration Form -->
+<form class="space-y-5" onsubmit="return false;">
+<!-- Social Signup -->
+<button class="flex w-full cursor-pointer items-center justify-center gap-3 overflow-hidden rounded-lg h-12 px-5 border border-[#3b4354] bg-[#1c1f27] text-white text-base font-medium hover:bg-[#252a35] transition-colors">
+<svg class="w-5 h-5" viewbox="0 0 24 24">
+<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="currentColor"></path>
+<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="currentColor"></path>
+<path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="currentColor"></path>
+<path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="currentColor"></path>
+</svg>
+                        Sign up with Google
+                    </button>
+<div class="relative flex py-3 items-center">
+<div class="flex-grow border-t border-[#3b4354]"></div>
+<span class="flex-shrink mx-4 text-[#9da6b9] text-xs uppercase tracking-widest font-bold">Or with email</span>
+<div class="flex-grow border-t border-[#3b4354]"></div>
+</div>
+<!-- TextField: Full Name -->
+<div class="flex flex-col gap-2">
+<label class="text-white text-base font-medium leading-normal">Full Name</label>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-[#3b4354] bg-[#1c1f27] focus:border-primary h-14 placeholder:text-[#9da6b9] p-[15px] text-base font-normal leading-normal transition-all" placeholder="Enter your full name" type="text"/>
+</div>
+<!-- TextField: Work Email -->
+<div class="flex flex-col gap-2">
+<label class="text-white text-base font-medium leading-normal">Work Email</label>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-[#3b4354] bg-[#1c1f27] focus:border-primary h-14 placeholder:text-[#9da6b9] p-[15px] text-base font-normal leading-normal transition-all" placeholder="name@company.com" type="email"/>
+</div>
+<!-- TextField: Create Password -->
+<div class="flex flex-col gap-2">
+<label class="text-white text-base font-medium leading-normal">Create Password</label>
+<div class="flex w-full flex-1 items-stretch rounded-lg group">
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-[#3b4354] bg-[#1c1f27] focus:border-primary h-14 placeholder:text-[#9da6b9] p-[15px] rounded-r-none border-r-0 text-base font-normal leading-normal transition-all" placeholder="At least 8 characters" type="password"/>
+<div class="text-[#9da6b9] flex border border-[#3b4354] bg-[#1c1f27] items-center justify-center px-4 rounded-r-lg border-l-0 cursor-pointer hover:text-white transition-colors">
+<span class="material-symbols-outlined">visibility</span>
+</div>
+</div>
+</div>
+<!-- Terms checkbox -->
+<div class="flex items-start gap-3 py-1">
+<input class="mt-1 rounded bg-[#1c1f27] border-[#3b4354] text-primary focus:ring-primary focus:ring-offset-background-dark" id="terms" type="checkbox"/>
+<label class="text-[#9da6b9] text-sm leading-tight" for="terms">
+                            By signing up, I agree to the <a class="text-primary hover:underline" href="#">Terms of Service</a> and <a class="text-primary hover:underline" href="#">Privacy Policy</a>.
+                        </label>
+</div>
+<!-- Primary CTA -->
+<button class="flex w-full min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-14 px-5 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
+<span class="truncate">Get Started</span>
+</button>
+<!-- Footer Link -->
+<p class="text-center text-[#9da6b9] text-sm py-4">
+                        Already have an account? 
+                        <a class="text-primary font-bold hover:underline" href="#">Log in</a>
+</p>
+</form>
+</div>
+</div>
+</div>
+</body></html>

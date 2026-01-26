@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Project Analytics Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                        "surface-dark": "#1a2130",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white min-h-screen flex">
+<!-- SideNavBar -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 flex flex-col bg-white dark:bg-background-dark sticky top-0 h-screen">
+<div class="p-6 flex flex-col gap-8 h-full">
+<div class="flex items-center gap-3">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">analytics</span>
+</div>
+<div>
+<h1 class="text-slate-900 dark:text-white text-base font-bold leading-none">Project Alpha</h1>
+<p class="text-slate-500 dark:text-[#9da6b9] text-xs mt-1">Management Platform</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1 flex-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<p class="text-sm font-semibold">Dashboard</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-[#9da6b9] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">folder</span>
+<p class="text-sm font-medium">Projects</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-[#9da6b9] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">task_alt</span>
+<p class="text-sm font-medium">Tasks</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-[#9da6b9] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<p class="text-sm font-medium">Calendar</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-[#9da6b9] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<p class="text-sm font-medium">Team</p>
+</a>
+</nav>
+<div class="pt-4 border-t border-slate-200 dark:border-slate-800">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-[#9da6b9] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<p class="text-sm font-medium">Settings</p>
+</a>
+</div>
+</div>
+</aside>
+<main class="flex-1 flex flex-col">
+<!-- TopNavBar -->
+<header class="h-16 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 bg-white dark:bg-background-dark sticky top-0 z-10">
+<div class="flex items-center gap-6">
+<h2 class="text-xl font-bold text-slate-900 dark:text-white">Project Analytics</h2>
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-[#9da6b9] text-xl">search</span>
+<input class="w-full bg-slate-100 dark:bg-surface-dark border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary dark:text-white placeholder:text-slate-500" placeholder="Search insights..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 dark:text-[#9da6b9] hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white dark:border-background-dark"></span>
+</button>
+<button class="p-2 text-slate-500 dark:text-[#9da6b9] hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+<span class="material-symbols-outlined">help</span>
+</button>
+<div class="h-8 w-[1px] bg-slate-200 dark:border-slate-800 mx-2"></div>
+<div class="flex items-center gap-3 cursor-pointer group">
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-9 border-2 border-slate-200 dark:border-slate-700" data-alt="User profile avatar portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBjGpEjUEqYB7geZyqwUSkGL0GAWeK6tvcA-bihcwRtsZoGOu6dmTj1As3UOrHvaPIT9Db1Z0KsZFFVnU-2dMcRM8dP9EoCv4hp_5QSwblu67Xw71-oSR1-1uflG-GxZ4voVrqEzab2Dz_9mNejhJPzvGnaR57OpUDTG4Kv1W0GZjX-fZuW9KSumbjj7wqjma53GLmde1bGUs5sASq896t1Kr4PqAaz0gzjWwEkiKPpHEmTTyCI981XdTAe6LEuDzBovTFskpkTJFr2");'></div>
+<div class="hidden md:block">
+<p class="text-sm font-bold leading-none dark:text-white">Alex Johnson</p>
+<p class="text-xs text-slate-500 dark:text-[#9da6b9] mt-1">Lead Manager</p>
+</div>
+</div>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="p-8 max-w-7xl mx-auto w-full space-y-8">
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Total Tasks -->
+<div class="bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col gap-4">
+<div class="flex items-start justify-between">
+<div>
+<p class="text-slate-500 dark:text-[#9da6b9] text-sm font-medium">Total Tasks</p>
+<h3 class="text-3xl font-bold mt-1 dark:text-white">1,284</h3>
+</div>
+<div class="text-emerald-500 flex items-center text-sm font-bold bg-emerald-500/10 px-2 py-1 rounded">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                            12%
+                        </div>
+</div>
+<div class="h-12 w-full">
+<svg class="w-full h-full" viewbox="0 0 100 30">
+<path d="M0 25 Q 10 20, 20 22 T 40 15 T 60 18 T 80 5 T 100 10" fill="none" stroke="#135bec" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+</svg>
+</div>
+</div>
+<!-- Completed Tasks -->
+<div class="bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col gap-4">
+<div class="flex items-start justify-between">
+<div>
+<p class="text-slate-500 dark:text-[#9da6b9] text-sm font-medium">Completed Tasks</p>
+<h3 class="text-3xl font-bold mt-1 dark:text-white">856</h3>
+</div>
+<div class="text-red-400 flex items-center text-sm font-bold bg-red-400/10 px-2 py-1 rounded">
+<span class="material-symbols-outlined text-sm">trending_down</span>
+                            5%
+                        </div>
+</div>
+<div class="h-12 w-full">
+<svg class="w-full h-full" viewbox="0 0 100 30">
+<path d="M0 10 Q 15 15, 30 12 T 50 20 T 70 18 T 100 25" fill="none" stroke="#f87171" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+</svg>
+</div>
+</div>
+<!-- Overdue -->
+<div class="bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col gap-4">
+<div class="flex items-start justify-between">
+<div>
+<p class="text-slate-500 dark:text-[#9da6b9] text-sm font-medium">Overdue</p>
+<h3 class="text-3xl font-bold mt-1 dark:text-white">12</h3>
+</div>
+<div class="text-emerald-500 flex items-center text-sm font-bold bg-emerald-500/10 px-2 py-1 rounded">
+<span class="material-symbols-outlined text-sm">trending_down</span>
+                            2%
+                        </div>
+</div>
+<div class="h-12 w-full opacity-50">
+<svg class="w-full h-full" viewbox="0 0 100 30">
+<rect fill="#135bec" height="10" width="10" x="0" y="20"></rect>
+<rect fill="#135bec" height="15" width="10" x="20" y="15"></rect>
+<rect fill="#135bec" height="8" width="10" x="40" y="22"></rect>
+<rect fill="#135bec" height="20" width="10" x="60" y="10"></rect>
+<rect fill="#135bec" height="5" width="10" x="80" y="25"></rect>
+</svg>
+</div>
+</div>
+<!-- Avg Time -->
+<div class="bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col gap-4">
+<div class="flex items-start justify-between">
+<div>
+<p class="text-slate-500 dark:text-[#9da6b9] text-sm font-medium">Avg. Completion Time</p>
+<h3 class="text-3xl font-bold mt-1 dark:text-white">3.2d</h3>
+</div>
+<div class="text-red-400 flex items-center text-sm font-bold bg-red-400/10 px-2 py-1 rounded">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                            10%
+                        </div>
+</div>
+<div class="h-12 w-full">
+<svg class="w-full h-full" viewbox="0 0 100 30">
+<path d="M0 28 L10 20 L20 22 L30 15 L40 18 L50 8 L60 12 L70 5 L80 15 L90 10 L100 2" fill="none" stroke="#135bec" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+</svg>
+</div>
+</div>
+</div>
+<!-- Main Charts Row -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Area Chart -->
+<div class="lg:col-span-2 bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h4 class="text-lg font-bold dark:text-white">Task Completion Trends</h4>
+<p class="text-sm text-slate-500 dark:text-[#9da6b9]">Daily velocity for the last 30 days</p>
+</div>
+<select class="bg-slate-100 dark:bg-background-dark border-none rounded-lg text-sm font-medium dark:text-white focus:ring-primary py-2 px-4">
+<option>Last 30 Days</option>
+<option>Last 90 Days</option>
+</select>
+</div>
+<div class="h-[300px] w-full relative">
+<!-- Simplified Chart Visual -->
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 1000 300">
+<defs>
+<lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#135bec" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#135bec" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path d="M0 250 Q 50 200, 100 220 T 200 150 T 300 180 T 400 100 T 500 120 T 600 50 T 700 80 T 800 30 T 900 60 T 1000 40 V 300 H 0 Z" fill="url(#chartGradient)"></path>
+<path d="M0 250 Q 50 200, 100 220 T 200 150 T 300 180 T 400 100 T 500 120 T 600 50 T 700 80 T 800 30 T 900 60 T 1000 40" fill="none" stroke="#135bec" stroke-width="3" vector-effect="non-scaling-stroke"></path>
+</svg>
+<div class="flex justify-between mt-4 border-t border-slate-100 dark:border-slate-800 pt-4">
+<span class="text-xs font-bold text-slate-400 dark:text-[#9da6b9]">Oct 01</span>
+<span class="text-xs font-bold text-slate-400 dark:text-[#9da6b9]">Oct 10</span>
+<span class="text-xs font-bold text-slate-400 dark:text-[#9da6b9]">Oct 20</span>
+<span class="text-xs font-bold text-slate-400 dark:text-[#9da6b9]">Oct 30</span>
+</div>
+</div>
+</div>
+<!-- Donut Chart -->
+<div class="bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col">
+<h4 class="text-lg font-bold dark:text-white mb-2">Tasks by Priority</h4>
+<p class="text-sm text-slate-500 dark:text-[#9da6b9] mb-8">Workload distribution</p>
+<div class="relative flex-1 flex flex-col items-center justify-center">
+<div class="size-48 rounded-full border-[16px] border-slate-100 dark:border-slate-800 flex items-center justify-center relative">
+<!-- Simulated segments using border-colors & rotation -->
+<div class="absolute inset-0 rounded-full border-[16px] border-transparent border-t-primary border-r-primary" style="transform: rotate(45deg);"></div>
+<div class="absolute inset-0 rounded-full border-[16px] border-transparent border-b-red-400" style="transform: rotate(0deg);"></div>
+<div class="text-center">
+<p class="text-3xl font-bold dark:text-white">1,284</p>
+<p class="text-xs text-slate-500 dark:text-[#9da6b9] uppercase tracking-wider font-bold">Total</p>
+</div>
+</div>
+<div class="mt-8 w-full space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="size-3 rounded-full bg-red-400"></span>
+<span class="text-sm font-medium dark:text-white">Urgent</span>
+</div>
+<span class="text-sm font-bold dark:text-white">15%</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="size-3 rounded-full bg-primary"></span>
+<span class="text-sm font-medium dark:text-white">High</span>
+</div>
+<span class="text-sm font-bold dark:text-white">45%</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="size-2.5 rounded-full bg-slate-400"></span>
+<span class="text-sm font-medium dark:text-white">Medium</span>
+</div>
+<span class="text-sm font-bold dark:text-white">30%</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="size-2.5 rounded-full bg-slate-200 dark:bg-slate-700"></span>
+<span class="text-sm font-medium dark:text-white">Low</span>
+</div>
+<span class="text-sm font-bold dark:text-white">10%</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Leaderboard Section -->
+<div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+<div class="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+<div>
+<h4 class="text-lg font-bold dark:text-white">Team Performance</h4>
+<p class="text-sm text-slate-500 dark:text-[#9da6b9]">Task metrics by individual</p>
+</div>
+<button class="flex items-center gap-2 text-primary text-sm font-bold hover:underline">
+                        View Full Report
+                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-slate-50 dark:bg-background-dark/50">
+<th class="px-6 py-4 text-xs font-bold text-slate-400 dark:text-[#9da6b9] uppercase tracking-wider">Member</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-400 dark:text-[#9da6b9] uppercase tracking-wider">Assigned</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-400 dark:text-[#9da6b9] uppercase tracking-wider">Completion Rate</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-400 dark:text-[#9da6b9] uppercase tracking-wider">Workload</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<!-- Team Row 1 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-background-dark/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center" data-alt="Team member profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBSVA2jFmwepFNYg-UD8h-C60U0g8NV4d-Qa8uyoQ833b3WL5zAb-FbK1Do9sRtbR-Z9vB8JRZlJ9GW_cWfG_2AW3cB5k8b6-Plzm5LFj2QzKR1jm-9Euk5GUHlFWwEib_looBqDHtmeGG3I3DOIab_wq5MiSmpflhjXYGuWEs7xiB9L-45JXFMWpELFZ6aq2rBHFBoYTSYL6dKKdVbNjU6cI3faqkc-iLU2E2blN2vYI9Y85a7U6149hO1DBvWqtdycckaogXdINma');"></div>
+<div>
+<p class="text-sm font-bold dark:text-white">Marcus Stone</p>
+<p class="text-xs text-slate-500 dark:text-[#9da6b9]">UI Designer</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm font-medium dark:text-white">42 Tasks</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-xs font-bold">94%</span>
+</div>
+</td>
+<td class="px-6 py-4 min-w-[200px]">
+<div class="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 75%"></div>
+</div>
+<p class="text-[10px] text-slate-400 mt-1 uppercase font-bold">Optimal Capacity</p>
+</td>
+</tr>
+<!-- Team Row 2 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-background-dark/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center" data-alt="Team member profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBB5uEOsrwTQXEuqOd5HNmAs6c-Cs7_TrzAjGHUt7enPqdzzNUzCXNqmnI-Bsr-MKG2qgrudw7sCHTfFeeXqdM0ws5wuDqHpXc64A51iFSL6vE68r1MRgqnlwjSVlEZDIk3i_0w2Muo1RwkDxLbJKSj99mpHDGB_tCfFRrYHs74cx-8Kxpj8kH2wewrwbw521bGck-jk9ayRU5D-4F0Xguu1QrFoM1w16mqcO--hH0qUttg01whUbog75iL3BwYPrV9CfJJRtCUyxcD');"></div>
+<div>
+<p class="text-sm font-bold dark:text-white">Sarah Chen</p>
+<p class="text-xs text-slate-500 dark:text-[#9da6b9]">Backend Dev</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm font-medium dark:text-white">38 Tasks</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-xs font-bold">88%</span>
+</div>
+</td>
+<td class="px-6 py-4 min-w-[200px]">
+<div class="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-red-400" style="width: 95%"></div>
+</div>
+<p class="text-[10px] text-red-400 mt-1 uppercase font-bold">Overloaded</p>
+</td>
+</tr>
+<!-- Team Row 3 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-background-dark/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center" data-alt="Team member profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC6wf7xuRXhiXgITrDkh829rhRI6aTUmCJQW3aT_wSfwxZLqrBwqBk1tWAbNWVU-oBZKn92C9uG-YMhVSlgqo6GqgLUkBSU7rXK3g-0Jp3eMGnp2s1CgQwcu5mvJn2LkzTm4Kzsr6A1sWI7QvOJ9c_pF-3GXa_ncUmVMSlzmDVpqjWnCF2idpRbMAn-TXhvHmJTa67cgueDAMoiezowynISYX9q8HopqdLd2XTuP1eNwdkKlPMcgZobjLZ_tOH_8lYSgBdxqNSikeZ3');"></div>
+<div>
+<p class="text-sm font-bold dark:text-white">Elena Rodriguez</p>
+<p class="text-xs text-slate-500 dark:text-[#9da6b9]">QA Specialist</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm font-medium dark:text-white">25 Tasks</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-bold">72%</span>
+</div>
+</td>
+<td class="px-6 py-4 min-w-[200px]">
+<div class="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 45%"></div>
+</div>
+<p class="text-[10px] text-slate-400 mt-1 uppercase font-bold">Under-utilized</p>
+</td>
+</tr>
+<!-- Team Row 4 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-background-dark/30 transition-colors">
+<td class="px-6 py-4 border-b-0">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center" data-alt="Team member profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCPTY_ZvXSsGF_uwXrLSK60HzTnIS2IL6rZvDsDsHKurOshmzR_xk2KcVgdd9-qAdZuPhwp8eU3vwlP_9u39T-mIS8kCc-71ffgI1jajumnVXI2p0B2efYpbe_7VFeNIINsbuZ32lJIUDyg3TlHkLmgRCjE0c_ETN9-yE08BSafO0ml3ZsazQFkUnQ7SZULuXBvlhkKwWZaVLID5PTnLCvezKSF2ANxT9HGG-RtEmAO56B1Qz-44equuqFZ6XRXBIfpWJutEMtS8Q6J');"></div>
+<div>
+<p class="text-sm font-bold dark:text-white">David Miller</p>
+<p class="text-xs text-slate-500 dark:text-[#9da6b9]">Product Owner</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 border-b-0">
+<p class="text-sm font-medium dark:text-white">12 Tasks</p>
+</td>
+<td class="px-6 py-4 border-b-0">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-xs font-bold">100%</span>
+</div>
+</td>
+<td class="px-6 py-4 border-b-0 min-w-[200px]">
+<div class="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 25%"></div>
+</div>
+<p class="text-[10px] text-slate-400 mt-1 uppercase font-bold">Under-utilized</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+</body></html>
