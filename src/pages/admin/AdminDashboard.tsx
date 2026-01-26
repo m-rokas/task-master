@@ -15,6 +15,7 @@ interface Stats {
   totalTasks: number;
   completedTasks: number;
   usersByPlan: { plan: string; count: number }[];
+  subscriptionStats: { status: string; count: number }[];
 }
 
 export default function AdminDashboard() {
@@ -60,6 +61,22 @@ export default function AdminDashboard() {
           planCounts[planName] = (planCounts[planName] || 0) + 1;
         });
 
+        // Fetch subscription stats
+        const { data: subData } = await supabase
+          .from('profiles')
+          .select('id, subscriptions(status)');
+
+        const subCounts: Record<string, number> = { free: 0, active: 0, trialing: 0, canceled: 0, past_due: 0 };
+        subData?.forEach((p: any) => {
+          const sub = Array.isArray(p.subscriptions) ? p.subscriptions[0] : p.subscriptions;
+          if (sub) {
+            const status = sub.status || 'free';
+            subCounts[status] = (subCounts[status] || 0) + 1;
+          } else {
+            subCounts['free'] = (subCounts['free'] || 0) + 1;
+          }
+        });
+
         setStats({
           totalUsers: totalUsers || 0,
           activeUsers: activeUsers || 0,
@@ -68,6 +85,10 @@ export default function AdminDashboard() {
           completedTasks: completedTasks || 0,
           usersByPlan: Object.entries(planCounts).map(([plan, count]) => ({
             plan,
+            count,
+          })),
+          subscriptionStats: Object.entries(subCounts).map(([status, count]) => ({
+            status,
             count,
           })),
         });
@@ -188,6 +209,40 @@ export default function AdminDashboard() {
               <p className="text-zinc-500">No plan data available</p>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Subscription Stats */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">
+          Subscription Status
+        </h3>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+          {stats?.subscriptionStats.map((stat) => {
+            const statusColors: Record<string, string> = {
+              free: 'text-zinc-400 bg-zinc-500/10',
+              active: 'text-green-400 bg-green-500/10',
+              trialing: 'text-blue-400 bg-blue-500/10',
+              canceled: 'text-red-400 bg-red-500/10',
+              past_due: 'text-yellow-400 bg-yellow-500/10',
+            };
+            const statusLabels: Record<string, string> = {
+              free: 'Free',
+              active: 'Active',
+              trialing: 'Trial',
+              canceled: 'Canceled',
+              past_due: 'Past Due',
+            };
+            return (
+              <div
+                key={stat.status}
+                className={`rounded-lg p-4 ${statusColors[stat.status] || 'bg-zinc-800'}`}
+              >
+                <p className="text-sm opacity-80">{statusLabels[stat.status] || stat.status}</p>
+                <p className="text-2xl font-bold">{stat.count}</p>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

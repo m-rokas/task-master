@@ -97,8 +97,8 @@ export default function PlatformSettings() {
         .upsert(upserts, { onConflict: 'key' });
 
       if (error) {
-        // If table doesn't exist, just show success (settings are in state)
-        console.log('Could not save to DB:', error.message);
+        console.error('Could not save to DB:', error.message);
+        throw new Error(error.message);
       }
     },
     onSuccess: () => {
@@ -106,6 +106,10 @@ export default function PlatformSettings() {
       refreshPlatformContext(); // Refresh the global platform context
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
+    },
+    onError: (error) => {
+      console.error('Failed to save settings:', error);
+      alert('Failed to save settings. Please check console for details.');
     },
   });
 
