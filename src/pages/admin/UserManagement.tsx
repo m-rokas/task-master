@@ -15,6 +15,7 @@ import {
   Mail,
   Key,
   Edit3,
+  Trash2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -237,6 +238,27 @@ export default function UserManagement() {
     setChangePlanUser(null);
   }
 
+  async function deleteUser(userId: string, userName: string) {
+    if (!confirm(`Are you sure you want to permanently delete "${userName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase.rpc('admin_delete_user', {
+        target_user_id: userId,
+      });
+
+      if (error) throw error;
+
+      setMessage({ type: 'success', text: `User "${userName}" deleted successfully` });
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      setMessage({ type: 'error', text: error.message || 'Failed to delete user' });
+    }
+    setActionMenuOpen(null);
+  }
+
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
@@ -247,6 +269,19 @@ export default function UserManagement() {
           Manage platform users, roles, and account status
         </p>
       </div>
+
+      {/* Global Message */}
+      {message && !editUser && (
+        <div className={cn(
+          'px-4 py-3 rounded-lg text-sm flex items-center justify-between',
+          message.type === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+        )}>
+          <span>{message.text}</span>
+          <button onClick={() => setMessage(null)} className="p-1 hover:opacity-70">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
@@ -457,6 +492,14 @@ export default function UserManagement() {
                             >
                               <Edit3 className="h-4 w-4 text-green-500" />
                               <span className="text-white">Edit User</span>
+                            </button>
+                            <div className="border-t border-zinc-700 my-1" />
+                            <button
+                              onClick={() => deleteUser(user.id, user.full_name || 'Unnamed User')}
+                              className="w-full px-4 py-2 text-left text-sm hover:bg-red-500/10 flex items-center gap-2"
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                              <span className="text-red-400">Delete User</span>
                             </button>
                           </div>
                         )}
