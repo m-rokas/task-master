@@ -142,6 +142,46 @@ export default function SubscriptionManagement() {
     },
   });
 
+  // Fetch stats for all users (separate from paginated data)
+  const { data: statsData } = useQuery({
+    queryKey: ['admin-subscription-stats'],
+    queryFn: async () => {
+      // Get all profiles with their subscriptions to calculate accurate stats
+      const { data, error } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          plan_id,
+          plans (name),
+          subscriptions (status)
+        `);
+      if (error) throw error;
+
+      const stats = { free: 0, active: 0, trialing: 0, canceled: 0, pastDue: 0 };
+
+      (data as any[]).forEach(user => {
+        const subscription = Array.isArray(user.subscriptions) ? user.subscriptions[0] : user.subscriptions;
+        const plan = Array.isArray(user.plans) ? user.plans[0] : user.plans;
+
+        if (subscription) {
+          switch (subscription.status) {
+            case 'active': stats.active++; break;
+            case 'trialing': stats.trialing++; break;
+            case 'canceled': stats.canceled++; break;
+            case 'past_due': stats.pastDue++; break;
+            default: stats.free++;
+          }
+        } else if (!plan || plan.name === 'free' || !user.plan_id) {
+          stats.free++;
+        } else {
+          stats.free++;
+        }
+      });
+
+      return stats;
+    },
+  });
+
   // Cancel subscription
   const cancelSubscription = useMutation({
     mutationFn: async (subId: string) => {
@@ -271,13 +311,13 @@ export default function SubscriptionManagement() {
 
   const totalPages = Math.ceil((data?.total || 0) / perPage);
 
-  // Stats - now counts by effectiveStatus
-  const stats = {
-    active: data?.users.filter((u: any) => u.effectiveStatus === 'active').length || 0,
-    trialing: data?.users.filter((u: any) => u.effectiveStatus === 'trialing').length || 0,
-    canceled: data?.users.filter((u: any) => u.effectiveStatus === 'canceled').length || 0,
-    pastDue: data?.users.filter((u: any) => u.effectiveStatus === 'past_due').length || 0,
-    free: data?.users.filter((u: any) => u.effectiveStatus === 'free').length || 0,
+  // Stats from separate query (all users, not just current page)
+  const stats = statsData || {
+    active: 0,
+    trialing: 0,
+    canceled: 0,
+    pastDue: 0,
+    free: 0,
   };
 
   if (isLoading) {
