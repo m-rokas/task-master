@@ -283,7 +283,32 @@ export default function Billing() {
     business: ['Unlimited projects', 'Unlimited tasks', 'All Pro features', 'API access', 'Advanced analytics', 'Dedicated support'],
   };
 
-  const isCurrentPlan = (planId: string) => currentPlan?.id === planId;
+  // Determine if this is the current plan
+  // If no plan is set, user is on free plan
+  const freePlan = plans?.find(p => p.name === 'free');
+  const effectiveCurrentPlan = currentPlan || freePlan;
+  const isCurrentPlan = (planId: string) => effectiveCurrentPlan?.id === planId;
+
+  // Check if user is on trial
+  const isOnTrial = subscription?.status === 'trialing';
+
+  // Get button text based on plan comparison
+  const getButtonText = (plan: Plan) => {
+    if (isCurrentPlan(plan.id)) {
+      return isOnTrial ? 'Trial Active' : 'Current Plan';
+    }
+
+    const currentPrice = effectiveCurrentPlan?.price_monthly || 0;
+    const targetPrice = plan.price_monthly;
+
+    if (targetPrice === 0) {
+      return 'Downgrade to Free';
+    } else if (targetPrice > currentPrice) {
+      return !hasPaymentMethod ? 'Add Card & Upgrade' : 'Upgrade Now';
+    } else {
+      return 'Switch Plan';
+    }
+  };
 
   if (plansLoading) {
     return (
@@ -498,19 +523,15 @@ export default function Billing() {
                     ? 'bg-green-500/20 text-green-400 cursor-default'
                     : plan.name === 'pro'
                     ? 'bg-primary text-white hover:bg-primary/90'
+                    : price === 0 && !isCurrent
+                    ? 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
                     : 'bg-zinc-700 text-white hover:bg-zinc-600'
                 )}
               >
                 {subscribeToPlan.isPending ? (
                   <Loader2 className="h-5 w-5 animate-spin mx-auto" />
-                ) : isCurrent ? (
-                  'Current Plan'
-                ) : price === 0 ? (
-                  'Switch to Free'
-                ) : needsPayment ? (
-                  'Add Card & Upgrade'
                 ) : (
-                  'Upgrade Now'
+                  getButtonText(plan)
                 )}
               </button>
             </div>
@@ -550,17 +571,17 @@ export default function Billing() {
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-zinc-400">Projects</span>
               <span className="text-sm font-medium text-white">
-                {projectCount ?? 0} / {currentPlan?.project_limit === null ? '∞' : (currentPlan?.project_limit ?? 3)}
+                {projectCount ?? 0} / {effectiveCurrentPlan?.project_limit === null ? '∞' : (effectiveCurrentPlan?.project_limit ?? 1)}
               </span>
             </div>
             <div className="w-full bg-zinc-700 rounded-full h-2">
-              {currentPlan?.project_limit !== null ? (
+              {effectiveCurrentPlan?.project_limit !== null ? (
                 <div
                   className={cn(
                     "h-2 rounded-full transition-all",
-                    (projectCount ?? 0) >= (currentPlan?.project_limit ?? 3) ? "bg-red-500" : "bg-primary"
+                    (projectCount ?? 0) >= (effectiveCurrentPlan?.project_limit ?? 1) ? "bg-red-500" : "bg-primary"
                   )}
-                  style={{ width: `${Math.min(((projectCount ?? 0) / (currentPlan?.project_limit ?? 3)) * 100, 100)}%` }}
+                  style={{ width: `${Math.min(((projectCount ?? 0) / (effectiveCurrentPlan?.project_limit ?? 1)) * 100, 100)}%` }}
                 />
               ) : (
                 <div className="h-2 rounded-full bg-green-500 w-full opacity-30" />
@@ -571,17 +592,17 @@ export default function Billing() {
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-zinc-400">Tasks</span>
               <span className="text-sm font-medium text-white">
-                {taskCount ?? 0} / {currentPlan?.task_limit === null ? '∞' : (currentPlan?.task_limit ?? 50)}
+                {taskCount ?? 0} / {effectiveCurrentPlan?.task_limit === null ? '∞' : (effectiveCurrentPlan?.task_limit ?? 50)}
               </span>
             </div>
             <div className="w-full bg-zinc-700 rounded-full h-2">
-              {currentPlan?.task_limit !== null ? (
+              {effectiveCurrentPlan?.task_limit !== null ? (
                 <div
                   className={cn(
                     "h-2 rounded-full transition-all",
-                    (taskCount ?? 0) >= (currentPlan?.task_limit ?? 50) ? "bg-red-500" : "bg-primary"
+                    (taskCount ?? 0) >= (effectiveCurrentPlan?.task_limit ?? 50) ? "bg-red-500" : "bg-primary"
                   )}
-                  style={{ width: `${Math.min(((taskCount ?? 0) / (currentPlan?.task_limit ?? 50)) * 100, 100)}%` }}
+                  style={{ width: `${Math.min(((taskCount ?? 0) / (effectiveCurrentPlan?.task_limit ?? 50)) * 100, 100)}%` }}
                 />
               ) : (
                 <div className="h-2 rounded-full bg-green-500 w-full opacity-30" />
