@@ -35,7 +35,7 @@ const navigation = [
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const location = useLocation();
   const { profile } = useAuth();
-  const { getSiteName } = usePlatformConfig();
+  const { getSiteName, getSiteDescription } = usePlatformConfig();
 
   const isActive = (href: string) => {
     if (href === '/dashboard') return location.pathname === href;
@@ -53,10 +53,13 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       <div className="h-16 flex items-center justify-between px-4 border-b border-zinc-800">
         {!collapsed && (
           <Link to="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
               <CheckSquare className="h-5 w-5 text-white" />
             </div>
-            <span className="font-bold text-white">{getSiteName()}</span>
+            <div className="min-w-0">
+              <span className="font-bold text-white block truncate">{getSiteName()}</span>
+              <span className="text-xs text-zinc-500 block truncate">{getSiteDescription()}</span>
+            </div>
           </Link>
         )}
         {collapsed && (

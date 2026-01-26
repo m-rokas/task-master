@@ -13,9 +13,14 @@ export function Header() {
           <div className="text-primary size-10 flex items-center justify-center">
             <CheckSquare className="size-8" />
           </div>
-          <h2 className="text-slate-900 dark:text-white text-2xl font-bold leading-tight tracking-[-0.015em]">
-            {settings.site_name}
-          </h2>
+          <div>
+            <h2 className="text-slate-900 dark:text-white text-2xl font-bold leading-tight tracking-[-0.015em]">
+              {settings.site_name}
+            </h2>
+            <p className="text-slate-500 dark:text-slate-400 text-xs hidden md:block">
+              {settings.site_description}
+            </p>
+          </div>
         </Link>
         <div className="flex flex-1 justify-end gap-8 items-center">
           <nav className="hidden md:flex items-center gap-10">
