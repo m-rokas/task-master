@@ -441,8 +441,6 @@ export default function Billing() {
           const price = billingCycle === 'yearly' ? plan.price_yearly : plan.price_monthly;
           const isCurrent = isCurrentPlan(plan.id);
           const features = plan.features_list || defaultFeatures[plan.name] || [];
-          const isPaidPlan = plan.price_monthly > 0;
-          const needsPayment = isPaidPlan && !hasPaymentMethod && !isCurrent;
 
           return (
             <div
