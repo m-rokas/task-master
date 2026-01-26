@@ -197,6 +197,7 @@ export default function SubscriptionManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-subscriptions'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-subscription-stats'] });
       setActionMenu(null);
     },
   });
@@ -216,6 +217,7 @@ export default function SubscriptionManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-subscriptions'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-subscription-stats'] });
       setActionMenu(null);
     },
   });
@@ -247,6 +249,7 @@ export default function SubscriptionManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-subscriptions'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-subscription-stats'] });
       setShowTrialModal(null);
     },
   });
@@ -279,6 +282,7 @@ export default function SubscriptionManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-subscriptions'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-subscription-stats'] });
       setShowChangePlanModal(null);
     },
   });
@@ -305,6 +309,7 @@ export default function SubscriptionManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-subscriptions'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-subscription-stats'] });
       setActionMenu(null);
     },
   });
@@ -337,43 +342,73 @@ export default function SubscriptionManagement() {
         </p>
       </div>
 
-      {/* Stats */}
+      {/* Stats - clickable to filter */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        <button
+          onClick={() => setStatusFilter(statusFilter === 'free' ? 'all' : 'free')}
+          className={cn(
+            "bg-zinc-900 border rounded-xl p-4 text-left transition-all hover:border-zinc-600",
+            statusFilter === 'free' ? "border-zinc-400 ring-2 ring-zinc-400/20" : "border-zinc-800"
+          )}
+        >
           <div className="flex items-center gap-2 text-zinc-400 mb-1">
             <User className="h-4 w-4" />
             <span className="text-sm">Free</span>
           </div>
           <p className="text-2xl font-bold text-white">{stats.free}</p>
-        </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        </button>
+        <button
+          onClick={() => setStatusFilter(statusFilter === 'active' ? 'all' : 'active')}
+          className={cn(
+            "bg-zinc-900 border rounded-xl p-4 text-left transition-all hover:border-green-600",
+            statusFilter === 'active' ? "border-green-500 ring-2 ring-green-500/20" : "border-zinc-800"
+          )}
+        >
           <div className="flex items-center gap-2 text-green-400 mb-1">
             <CheckCircle className="h-4 w-4" />
             <span className="text-sm">Active</span>
           </div>
           <p className="text-2xl font-bold text-white">{stats.active}</p>
-        </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        </button>
+        <button
+          onClick={() => setStatusFilter(statusFilter === 'trialing' ? 'all' : 'trialing')}
+          className={cn(
+            "bg-zinc-900 border rounded-xl p-4 text-left transition-all hover:border-blue-600",
+            statusFilter === 'trialing' ? "border-blue-500 ring-2 ring-blue-500/20" : "border-zinc-800"
+          )}
+        >
           <div className="flex items-center gap-2 text-blue-400 mb-1">
             <Clock className="h-4 w-4" />
             <span className="text-sm">Trialing</span>
           </div>
           <p className="text-2xl font-bold text-white">{stats.trialing}</p>
-        </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        </button>
+        <button
+          onClick={() => setStatusFilter(statusFilter === 'canceled' ? 'all' : 'canceled')}
+          className={cn(
+            "bg-zinc-900 border rounded-xl p-4 text-left transition-all hover:border-red-600",
+            statusFilter === 'canceled' ? "border-red-500 ring-2 ring-red-500/20" : "border-zinc-800"
+          )}
+        >
           <div className="flex items-center gap-2 text-red-400 mb-1">
             <XCircle className="h-4 w-4" />
             <span className="text-sm">Canceled</span>
           </div>
           <p className="text-2xl font-bold text-white">{stats.canceled}</p>
-        </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        </button>
+        <button
+          onClick={() => setStatusFilter(statusFilter === 'past_due' ? 'all' : 'past_due')}
+          className={cn(
+            "bg-zinc-900 border rounded-xl p-4 text-left transition-all hover:border-yellow-600",
+            statusFilter === 'past_due' ? "border-yellow-500 ring-2 ring-yellow-500/20" : "border-zinc-800"
+          )}
+        >
           <div className="flex items-center gap-2 text-yellow-400 mb-1">
             <AlertCircle className="h-4 w-4" />
             <span className="text-sm">Past Due</span>
           </div>
           <p className="text-2xl font-bold text-white">{stats.pastDue}</p>
-        </div>
+        </button>
       </div>
 
       {/* Filters */}

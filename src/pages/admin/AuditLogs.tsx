@@ -108,7 +108,8 @@ export default function AuditLogs() {
             <option value="all">All Entities</option>
             <option value="tm_tasks">Tasks</option>
             <option value="tm_projects">Projects</option>
-            <option value="profiles">Profiles</option>
+            <option value="profiles">Users/Profiles</option>
+            <option value="subscriptions">Subscriptions</option>
             <option value="task_comments">Comments</option>
           </select>
         </div>
