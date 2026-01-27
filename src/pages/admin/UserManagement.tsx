@@ -25,6 +25,12 @@ interface Plan {
   display_name: string;
 }
 
+interface Subscription {
+  id: string;
+  status: string;
+  current_period_end: string | null;
+}
+
 interface UserProfile {
   id: string;
   full_name: string;
@@ -35,6 +41,7 @@ interface UserProfile {
   email?: string;
   plan_id?: string | null;
   plans?: { id: string; name: string; display_name: string } | null;
+  subscriptions?: Subscription[] | null;
 }
 
 interface UserEmail {
@@ -165,7 +172,8 @@ export default function UserManagement() {
         .from('profiles')
         .select(`
           *,
-          plans (id, name, display_name)
+          plans (id, name, display_name),
+          subscriptions (id, status, current_period_end)
         `, { count: 'exact' })
         .order('created_at', { ascending: false })
         .range((page - 1) * pageSize, page * pageSize - 1);
@@ -225,15 +233,56 @@ export default function UserManagement() {
 
   async function changeUserPlan(userId: string, planId: string) {
     try {
-      const { error } = await supabase
+      // Update profile's plan
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({ plan_id: planId })
         .eq('id', userId);
 
-      if (error) throw error;
+      if (profileError) throw profileError;
+
+      // Also update or create subscription
+      const selectedPlan = plans.find(p => p.id === planId);
+      const isFree = selectedPlan?.name === 'free';
+
+      // Check if user has existing subscription
+      const { data: existingSub } = await supabase
+        .from('subscriptions')
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      const periodEnd = new Date();
+      periodEnd.setMonth(periodEnd.getMonth() + 1);
+
+      if (existingSub) {
+        // Update existing subscription
+        await supabase
+          .from('subscriptions')
+          .update({
+            plan_id: planId,
+            status: isFree ? 'canceled' : 'active',
+            current_period_end: periodEnd.toISOString(),
+          })
+          .eq('id', existingSub.id);
+      } else if (!isFree) {
+        // Create new subscription for paid plan
+        await supabase
+          .from('subscriptions')
+          .insert({
+            user_id: userId,
+            plan_id: planId,
+            status: 'active',
+            current_period_start: new Date().toISOString(),
+            current_period_end: periodEnd.toISOString(),
+          });
+      }
+
+      setMessage({ type: 'success', text: `Plan changed to ${selectedPlan?.display_name || 'Unknown'}` });
       fetchUsers();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating user plan:', error);
+      setMessage({ type: 'error', text: error.message || 'Failed to change plan' });
     }
     setChangePlanUser(null);
   }
@@ -338,6 +387,9 @@ export default function UserManagement() {
                       Plan
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                      Subscription
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider">
                       Role
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider">
@@ -392,6 +444,38 @@ export default function UserManagement() {
                         >
                           {user.plans?.display_name || 'Free'}
                         </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {(() => {
+                          const sub = user.subscriptions?.[0];
+                          if (!sub) {
+                            return <span className="text-xs text-zinc-500">No subscription</span>;
+                          }
+                          const statusColors: Record<string, string> = {
+                            active: 'bg-green-500/20 text-green-400',
+                            trialing: 'bg-blue-500/20 text-blue-400',
+                            canceled: 'bg-red-500/20 text-red-400',
+                            past_due: 'bg-yellow-500/20 text-yellow-400',
+                          };
+                          const statusLabels: Record<string, string> = {
+                            active: 'Active',
+                            trialing: 'Trial',
+                            canceled: 'Canceled',
+                            past_due: 'Past Due',
+                          };
+                          return (
+                            <div className="flex flex-col gap-1">
+                              <span className={cn('px-2 py-0.5 rounded text-xs font-medium', statusColors[sub.status] || 'bg-zinc-700 text-zinc-300')}>
+                                {statusLabels[sub.status] || sub.status}
+                              </span>
+                              {sub.current_period_end && (
+                                <span className="text-xs text-zinc-500">
+                                  {sub.status === 'trialing' ? 'Ends' : 'Renews'}: {new Date(sub.current_period_end).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td className="px-6 py-4">
                         <span
