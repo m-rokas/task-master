@@ -85,22 +85,58 @@ export default function PlatformSettings() {
   // Save settings
   const saveSettings = useMutation({
     mutationFn: async () => {
-      // Upsert each setting
-      const upserts = Object.entries(settings).map(([key, value]) => ({
-        key,
-        value,
-        category: getCategory(key),
-        description: getDescription(key),
-      }));
-
-      const { error } = await supabase
+      // Get existing keys
+      const { data: existingConfigs } = await supabase
         .from('platform_config')
-        .upsert(upserts, { onConflict: 'key' });
+        .select('key');
 
-      if (error) {
-        console.error('Could not save to DB:', error.message);
-        throw new Error(error.message);
+      const existingKeys = new Set(existingConfigs?.map(c => c.key) || []);
+
+      // Separate into updates and inserts
+      const updates: { key: string; value: string; category: string; description: string }[] = [];
+      const inserts: { key: string; value: string; category: string; description: string }[] = [];
+
+      Object.entries(settings).forEach(([key, value]) => {
+        const record = {
+          key,
+          value,
+          category: getCategory(key),
+          description: getDescription(key),
+        };
+
+        if (existingKeys.has(key)) {
+          updates.push(record);
+        } else {
+          inserts.push(record);
+        }
+      });
+
+      // Update existing records one by one
+      for (const record of updates) {
+        const { error } = await supabase
+          .from('platform_config')
+          .update({ value: record.value, category: record.category, description: record.description })
+          .eq('key', record.key);
+
+        if (error) {
+          console.error(`Could not update ${record.key}:`, error.message);
+          throw new Error(`Failed to update ${record.key}: ${error.message}`);
+        }
       }
+
+      // Insert new records
+      if (inserts.length > 0) {
+        const { error } = await supabase
+          .from('platform_config')
+          .insert(inserts);
+
+        if (error) {
+          console.error('Could not insert new settings:', error.message);
+          throw new Error(error.message);
+        }
+      }
+
+      console.log(`Settings saved: ${updates.length} updated, ${inserts.length} inserted`);
     },
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['platform-config'] });

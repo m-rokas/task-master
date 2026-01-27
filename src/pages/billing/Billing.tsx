@@ -267,6 +267,7 @@ export default function Billing() {
           plan_id: freePlan.id,
           status: 'canceled',
           cancel_at_period_end: false,
+          canceled_at: new Date().toISOString(),
         })
         .eq('id', subscription.id);
       if (subError) {
