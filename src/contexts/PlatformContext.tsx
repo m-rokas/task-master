@@ -79,22 +79,23 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
     fetchSettings();
   }, []);
 
-  // Update document title when site_name changes
+  // Update document title and meta description when settings change
   useEffect(() => {
-    if (settings.site_name) {
+    // Update browser tab title: "TaskMaster - Professional Task Management Platform"
+    if (settings.site_name && settings.site_description) {
+      document.title = `${settings.site_name} - ${settings.site_description}`;
+    } else if (settings.site_name) {
       document.title = settings.site_name;
     }
-  }, [settings.site_name]);
 
-  // Update meta description when site_description changes
-  useEffect(() => {
+    // Update meta description for SEO
     if (settings.site_description) {
       const metaDescription = document.querySelector('meta[name="description"]');
       if (metaDescription) {
         metaDescription.setAttribute('content', settings.site_description);
       }
     }
-  }, [settings.site_description]);
+  }, [settings.site_name, settings.site_description]);
 
   return (
     <PlatformContext.Provider value={{ settings, loading, refreshSettings }}>
