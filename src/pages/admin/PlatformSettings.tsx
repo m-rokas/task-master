@@ -102,9 +102,9 @@ export default function PlatformSettings() {
         throw new Error(error.message);
       }
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['platform-config'] });
-      refreshPlatformContext(); // Refresh the global platform context
+      await refreshPlatformContext(); // Refresh the global platform context
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     },
