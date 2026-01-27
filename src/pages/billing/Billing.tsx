@@ -156,16 +156,43 @@ export default function Billing() {
       const periodEnd = new Date();
       periodEnd.setMonth(periodEnd.getMonth() + (billingCycle === 'yearly' ? 12 : 1));
 
-      // Upsert subscription
-      const { error: subError } = await supabase.from('subscriptions').upsert({
-        user_id: user?.id,
-        plan_id: planId,
-        status: 'active',
-        current_period_start: new Date().toISOString(),
-        current_period_end: periodEnd.toISOString(),
-        cancel_at_period_end: false,
-      });
-      if (subError) throw subError;
+      // Check if subscription exists for this user
+      const { data: existingSub } = await supabase
+        .from('subscriptions')
+        .select('id')
+        .eq('user_id', user?.id)
+        .maybeSingle();
+
+      let subError;
+      if (existingSub) {
+        // Update existing subscription
+        const result = await supabase
+          .from('subscriptions')
+          .update({
+            plan_id: planId,
+            status: 'active',
+            current_period_start: new Date().toISOString(),
+            current_period_end: periodEnd.toISOString(),
+            cancel_at_period_end: false,
+          })
+          .eq('id', existingSub.id);
+        subError = result.error;
+      } else {
+        // Insert new subscription
+        const result = await supabase.from('subscriptions').insert({
+          user_id: user?.id,
+          plan_id: planId,
+          status: 'active',
+          current_period_start: new Date().toISOString(),
+          current_period_end: periodEnd.toISOString(),
+          cancel_at_period_end: false,
+        });
+        subError = result.error;
+      }
+      if (subError) {
+        console.error('Subscription error:', subError);
+        throw subError;
+      }
 
       // Update profile's plan_id
       const { error: profileError } = await supabase
@@ -224,35 +251,47 @@ export default function Billing() {
     },
   });
 
-  // Cancel subscription
+  // Cancel subscription - immediately switch to free plan
   const cancelSubscription = useMutation({
     mutationFn: async () => {
       if (!subscription) return;
 
-      // Switch to free plan
+      // Find the free plan
       const freePlan = plans?.find(p => p.name === 'free');
       if (!freePlan) throw new Error('Free plan not found');
 
+      // Update subscription to free plan with status canceled
       const { error: subError } = await supabase
         .from('subscriptions')
         .update({
-          cancel_at_period_end: true,
-          plan_id: freePlan.id
+          plan_id: freePlan.id,
+          status: 'canceled',
+          cancel_at_period_end: false,
         })
         .eq('id', subscription.id);
-      if (subError) throw subError;
+      if (subError) {
+        console.error('Cancel subscription error:', subError);
+        throw subError;
+      }
 
       // Update profile to free plan
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ plan_id: freePlan.id })
         .eq('id', user?.id);
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Profile update error:', profileError);
+        throw profileError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-subscription'] });
       refreshProfile();
       setShowCancelModal(false);
+    },
+    onError: (error: Error) => {
+      console.error('Failed to cancel subscription:', error);
+      alert('Failed to cancel subscription. Please check console for details.');
     },
   });
 
