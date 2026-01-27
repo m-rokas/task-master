@@ -12,7 +12,6 @@ import {
   Zap,
   Crown,
   CreditCard,
-  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -32,7 +31,6 @@ export default function Billing() {
   const queryClient = useQueryClient();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
   // Fetch all plans
@@ -127,7 +125,13 @@ export default function Billing() {
 
   // Handle plan selection
   const handleSelectPlan = (plan: Plan) => {
-    if (isCurrentPlan(plan.id)) return;
+    console.log('Plan clicked:', plan.name, plan.id);
+    alert(`Plan clicked: ${plan.display_name}\nPrice: €${plan.price_monthly}/mo`);
+
+    if (isCurrentPlan(plan.id)) {
+      alert('This is already your current plan');
+      return;
+    }
 
     // If downgrading to free, cancel via local logic
     if (plan.price_monthly === 0) {
@@ -136,28 +140,29 @@ export default function Billing() {
     }
 
     // For paid plans:
-    setSelectedPlan(plan);
     setPaymentError(null);
 
     // If user already has an active paid subscription, redirect to Customer Portal
     // (Stripe Portal handles upgrades/downgrades automatically)
     if (subscription && hasPaymentMethod && currentPlan && currentPlan.name !== 'free') {
+      alert('Redirecting to Stripe Customer Portal...');
       redirectToStripePortal.mutate();
       return;
     }
 
     // New subscription - redirect to Stripe Checkout
+    alert('Redirecting to Stripe Checkout...');
     redirectToStripeCheckout.mutate(plan.id);
   };
 
-  // Subscribe to plan
+  // Subscribe to plan (ONLY for free plan or Stripe-handled upgrades)
   const subscribeToPlan = useMutation({
     mutationFn: async (planId: string) => {
       const plan = plans?.find((p) => p.id === planId);
 
-      // For paid plans, we need payment method
-      if (plan && plan.price_monthly > 0 && !hasPaymentMethod) {
-        throw new Error('Payment method required');
+      // BLOCK: Never allow direct subscription to paid plans without Stripe
+      if (plan && plan.price_monthly > 0) {
+        throw new Error('Paid plans require Stripe checkout. This should not happen - please refresh the page.');
       }
 
       const periodEnd = new Date();
@@ -223,8 +228,6 @@ export default function Billing() {
       queryClient.invalidateQueries({ queryKey: ['user-subscription'] });
       queryClient.invalidateQueries({ queryKey: ['user-payments'] });
       refreshProfile();
-      setShowPaymentModal(false);
-      setSelectedPlan(null);
     },
     onError: (error: Error) => {
       setPaymentError(error.message);
@@ -234,6 +237,8 @@ export default function Billing() {
   // Redirect to Stripe Checkout for subscription
   const redirectToStripeCheckout = useMutation({
     mutationFn: async (planId: string) => {
+      console.log('Starting Stripe checkout for plan:', planId);
+
       const response = await supabase.functions.invoke('stripe-checkout', {
         body: {
           planId,
@@ -244,29 +249,45 @@ export default function Billing() {
         },
       });
 
+      console.log('Stripe checkout response:', response);
+
       if (response.error) {
+        console.error('Stripe checkout error (response.error):', response.error);
         throw new Error(response.error.message || 'Failed to create checkout session');
       }
 
       const data = response.data as { url?: string; error?: string; message?: string };
 
+      if (!data) {
+        throw new Error('No response from Stripe checkout');
+      }
+
       if (data.error) {
+        console.error('Stripe checkout error (data.error):', data.error, data.message);
         throw new Error(data.message || data.error);
       }
 
-      if (data.url) {
-        window.location.href = data.url;
+      if (!data.url) {
+        throw new Error('No checkout URL returned from Stripe');
       }
+
+      console.log('Redirecting to Stripe:', data.url);
+      window.location.href = data.url;
     },
     onError: (error: Error) => {
-      console.error('Stripe checkout error:', error);
-      setPaymentError(error.message);
+      console.error('Stripe checkout mutation error:', error);
+      const errorMsg = error.message || 'Failed to start checkout';
+      setPaymentError(errorMsg);
+      // Show alert for visibility
+      alert(`Stripe Checkout Error:\n${errorMsg}\n\nPlease configure Stripe Price IDs in the database.`);
     },
   });
 
   // Redirect to Stripe Customer Portal
   const redirectToStripePortal = useMutation({
     mutationFn: async () => {
+      console.log('Opening Stripe Portal...');
+
       const response = await supabase.functions.invoke('stripe-portal', {
         body: {
           userId: user?.id,
@@ -274,23 +295,36 @@ export default function Billing() {
         },
       });
 
+      console.log('Stripe Portal response:', response);
+
       if (response.error) {
+        console.error('Stripe Portal error (response.error):', response.error);
         throw new Error(response.error.message || 'Failed to create portal session');
       }
 
-      const data = response.data as { url?: string; error?: string };
+      const data = response.data as { url?: string; error?: string; message?: string };
+
+      if (!data) {
+        throw new Error('No response from Stripe Portal');
+      }
 
       if (data.error) {
-        throw new Error(data.error);
+        console.error('Stripe Portal error (data.error):', data.error);
+        throw new Error(data.message || data.error);
       }
 
-      if (data.url) {
-        window.location.href = data.url;
+      if (!data.url) {
+        throw new Error('No portal URL returned from Stripe');
       }
+
+      console.log('Redirecting to Stripe Portal:', data.url);
+      window.location.href = data.url;
     },
     onError: (error: Error) => {
       console.error('Stripe portal error:', error);
-      alert(error.message || 'Failed to open payment management.');
+      const errorMsg = error.message || 'Failed to open payment management';
+      setPaymentError(errorMsg);
+      alert(`Stripe Portal Error:\n${errorMsg}\n\nMake sure Stripe is configured with STRIPE_SECRET_KEY.`);
     },
   });
 
@@ -483,19 +517,17 @@ export default function Billing() {
             <div>
               <p className="text-white font-medium">Payment Method</p>
               <p className="text-sm text-zinc-500">
-                {hasPaymentMethod ? 'Card ending in •••• 4242' : 'No payment method added'}
+                {hasPaymentMethod ? 'Card on file (managed by Stripe)' : 'No payment method added'}
               </p>
             </div>
           </div>
-          {hasPaymentMethod && (
-            <button
-              onClick={() => redirectToStripePortal.mutate()}
-              disabled={redirectToStripePortal.isPending}
-              className="px-4 py-2 text-zinc-400 hover:text-white text-sm font-medium disabled:opacity-50"
-            >
-              {redirectToStripePortal.isPending ? 'Opening...' : 'Manage in Stripe'}
-            </button>
-          )}
+          <button
+            onClick={() => redirectToStripePortal.mutate()}
+            disabled={redirectToStripePortal.isPending}
+            className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium rounded-lg disabled:opacity-50"
+          >
+            {redirectToStripePortal.isPending ? 'Opening...' : hasPaymentMethod ? 'Manage Payment' : 'Add Payment Method'}
+          </button>
         </div>
       </div>
 
@@ -608,7 +640,7 @@ export default function Billing() {
 
               <button
                 onClick={() => handleSelectPlan(plan)}
-                disabled={isCurrent || subscribeToPlan.isPending}
+                disabled={isCurrent || subscribeToPlan.isPending || redirectToStripeCheckout.isPending || redirectToStripePortal.isPending}
                 className={cn(
                   'w-full py-3 rounded-lg font-semibold transition-all',
                   isCurrent
@@ -620,7 +652,7 @@ export default function Billing() {
                     : 'bg-zinc-700 text-white hover:bg-zinc-600'
                 )}
               >
-                {subscribeToPlan.isPending ? (
+                {(subscribeToPlan.isPending || redirectToStripeCheckout.isPending || redirectToStripePortal.isPending) ? (
                   <Loader2 className="h-5 w-5 animate-spin mx-auto" />
                 ) : (
                   getButtonText(plan)

@@ -85,12 +85,21 @@ export default function PlatformSettings() {
   // Save settings
   const saveSettings = useMutation({
     mutationFn: async () => {
+      console.log('Starting save settings...');
+      alert('Save started - check console for details');
+
       // Get existing keys
-      const { data: existingConfigs } = await supabase
+      const { data: existingConfigs, error: fetchError } = await supabase
         .from('platform_config')
         .select('key');
 
+      if (fetchError) {
+        console.error('Failed to fetch existing configs:', fetchError);
+        throw new Error(`Failed to fetch configs: ${fetchError.message}`);
+      }
+
       const existingKeys = new Set(existingConfigs?.map(c => c.key) || []);
+      console.log('Existing keys:', Array.from(existingKeys));
 
       // Separate into updates and inserts
       const updates: { key: string; value: string; category: string; description: string }[] = [];
@@ -111,6 +120,11 @@ export default function PlatformSettings() {
         }
       });
 
+      console.log(`Will update ${updates.length} records, insert ${inserts.length} records`);
+
+      // Track failed updates
+      const failedUpdates: string[] = [];
+
       // Update existing records one by one
       for (const record of updates) {
         console.log(`Updating ${record.key} to: ${record.value}`);
@@ -121,30 +135,39 @@ export default function PlatformSettings() {
           .select('key, value');
 
         if (error) {
-          console.error(`Could not update ${record.key}:`, error.message);
-          throw new Error(`Failed to update ${record.key}: ${error.message}`);
+          console.error(`Could not update ${record.key}:`, error.message, error);
+          failedUpdates.push(`${record.key}: ${error.message}`);
+          continue;
         }
 
         if (!data || data.length === 0) {
-          console.warn(`No rows updated for ${record.key} - might be RLS issue`);
+          console.warn(`No rows updated for ${record.key} - RLS policy blocking update`);
+          failedUpdates.push(`${record.key}: No rows updated (RLS issue)`);
         } else {
-          console.log(`Updated ${record.key}:`, data);
+          console.log(`Successfully updated ${record.key}:`, data);
         }
       }
 
       // Insert new records
       if (inserts.length > 0) {
-        const { error } = await supabase
+        console.log('Inserting new records:', inserts);
+        const { data: insertData, error } = await supabase
           .from('platform_config')
-          .insert(inserts);
+          .insert(inserts)
+          .select();
 
         if (error) {
-          console.error('Could not insert new settings:', error.message);
-          throw new Error(error.message);
+          console.error('Could not insert new settings:', error.message, error);
+          throw new Error(`Insert failed: ${error.message}`);
         }
+        console.log('Inserted:', insertData);
       }
 
-      console.log(`Settings saved: ${updates.length} updated, ${inserts.length} inserted`);
+      if (failedUpdates.length > 0) {
+        throw new Error(`Some settings failed to save:\n${failedUpdates.join('\n')}`);
+      }
+
+      console.log(`Settings saved successfully: ${updates.length} updated, ${inserts.length} inserted`);
     },
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['platform-config'] });
@@ -152,9 +175,9 @@ export default function PlatformSettings() {
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Failed to save settings:', error);
-      alert('Failed to save settings. Please check console for details.');
+      alert(`Failed to save settings:\n${error.message}`);
     },
   });
 
