@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 interface PlatformSettings {
   site_name: string;
   site_description: string;
+  site_url: string;
   support_email: string;
   trial_days: number;
   trial_enabled: boolean;
@@ -14,6 +15,7 @@ interface PlatformSettings {
 const defaultSettings: PlatformSettings = {
   site_name: 'TaskMaster',
   site_description: 'Professional Task Management Platform',
+  site_url: '',
   support_email: 'support@taskmaster.com',
   trial_days: 14,
   trial_enabled: true,
@@ -54,6 +56,7 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
         setSettings({
           site_name: configMap.site_name || defaultSettings.site_name,
           site_description: configMap.site_description || defaultSettings.site_description,
+          site_url: configMap.site_url || defaultSettings.site_url,
           support_email: configMap.support_email || defaultSettings.support_email,
           trial_days: parseInt(configMap.trial_days) || defaultSettings.trial_days,
           trial_enabled: configMap.trial_enabled === 'true',

@@ -26,14 +26,22 @@ export default function AdminDashboard() {
     async function fetchStats() {
       try {
         // Fetch user stats
-        const { count: totalUsers } = await supabase
+        const { count: totalUsers, error: usersError } = await supabase
           .from('profiles')
           .select('*', { count: 'exact', head: true });
 
-        const { count: activeUsers } = await supabase
+        if (usersError) {
+          console.error('Error fetching total users:', usersError);
+        }
+
+        const { count: activeUsers, error: activeError } = await supabase
           .from('profiles')
           .select('*', { count: 'exact', head: true })
           .eq('is_active', true);
+
+        if (activeError) {
+          console.error('Error fetching active users:', activeError);
+        }
 
         // Fetch project stats
         const { count: totalProjects } = await supabase
@@ -62,9 +70,13 @@ export default function AdminDashboard() {
         });
 
         // Fetch subscription stats - direct query to subscriptions table
-        const { data: allSubscriptions } = await supabase
+        const { data: allSubscriptions, error: subsError } = await supabase
           .from('subscriptions')
           .select('user_id, status');
+
+        if (subsError) {
+          console.error('Error fetching subscriptions:', subsError);
+        }
 
         // Get unique users with subscriptions
         const usersWithSubs = new Set(allSubscriptions?.map(s => s.user_id) || []);
@@ -90,7 +102,8 @@ export default function AdminDashboard() {
         });
 
         // Count free users (users without any subscription)
-        subCounts['free'] = (totalUsers || 0) - usersWithSubs.size;
+        // Ensure we don't go negative if totalUsers is 0 due to query issues
+        subCounts['free'] = Math.max(0, (totalUsers || 0) - usersWithSubs.size);
 
         setStats({
           totalUsers: totalUsers || 0,

@@ -143,7 +143,7 @@ export default function SubscriptionManagement() {
   });
 
   // Fetch stats for all users (separate from paginated data)
-  const { data: statsData } = useQuery({
+  const { data: statsData, error: statsError } = useQuery({
     queryKey: ['admin-subscription-stats'],
     queryFn: async () => {
       // Get all profiles with their subscriptions to calculate accurate stats
@@ -155,7 +155,16 @@ export default function SubscriptionManagement() {
           plans (name),
           subscriptions (status)
         `);
-      if (error) throw error;
+
+      if (error) {
+        console.error('Error fetching subscription stats:', error);
+        throw error;
+      }
+
+      if (!data || data.length === 0) {
+        console.warn('No profiles found - check RLS policies for admin access');
+        return { free: 0, active: 0, trialing: 0, canceled: 0, pastDue: 0 };
+      }
 
       const stats = { free: 0, active: 0, trialing: 0, canceled: 0, pastDue: 0 };
 
@@ -181,6 +190,11 @@ export default function SubscriptionManagement() {
       return stats;
     },
   });
+
+  // Log stats error if any
+  if (statsError) {
+    console.error('Stats query error:', statsError);
+  }
 
   // Cancel subscription
   const cancelSubscription = useMutation({
