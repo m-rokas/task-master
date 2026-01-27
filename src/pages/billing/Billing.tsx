@@ -129,15 +129,24 @@ export default function Billing() {
   const handleSelectPlan = (plan: Plan) => {
     if (isCurrentPlan(plan.id)) return;
 
-    // If downgrading to free, just do it locally
+    // If downgrading to free, cancel via local logic
     if (plan.price_monthly === 0) {
       subscribeToPlan.mutate(plan.id);
       return;
     }
 
-    // For paid plans, redirect to Stripe Checkout
+    // For paid plans:
     setSelectedPlan(plan);
     setPaymentError(null);
+
+    // If user already has an active paid subscription, redirect to Customer Portal
+    // (Stripe Portal handles upgrades/downgrades automatically)
+    if (subscription && hasPaymentMethod && currentPlan && currentPlan.name !== 'free') {
+      redirectToStripePortal.mutate();
+      return;
+    }
+
+    // New subscription - redirect to Stripe Checkout
     redirectToStripeCheckout.mutate(plan.id);
   };
 
