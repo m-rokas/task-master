@@ -9,16 +9,20 @@ import {
   Settings,
   Users,
   ChevronLeft,
+  ChevronRight,
   Plus,
   CreditCard,
   Calendar,
   Shield,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SidebarProps {
   collapsed: boolean;
   onToggle: () => void;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 const navigation = [
@@ -32,10 +36,10 @@ const navigation = [
 ];
 
 
-export function Sidebar({ collapsed, onToggle }: SidebarProps) {
+export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProps) {
   const location = useLocation();
   const { profile } = useAuth();
-  const { getSiteName, getSiteDescription } = usePlatformConfig();
+  const { getSiteName } = usePlatformConfig();
 
   const isActive = (href: string) => {
     if (href === '/dashboard') return location.pathname === href;
@@ -46,7 +50,9 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     <aside
       className={cn(
         'fixed left-0 top-0 z-40 h-screen bg-zinc-900 border-r border-zinc-800 transition-all duration-300',
-        collapsed ? 'w-16' : 'w-64'
+        collapsed ? 'w-16' : 'w-64',
+        // Mobile: hidden by default, shown when mobileOpen
+        mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       )}
     >
       {/* Logo */}
@@ -58,7 +64,6 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
             </div>
             <div className="min-w-0">
               <span className="font-bold text-white block truncate">{getSiteName()}</span>
-              <span className="text-xs text-zinc-500 block truncate">{getSiteDescription()}</span>
             </div>
           </Link>
         )}
@@ -69,14 +74,21 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
             </div>
           </Link>
         )}
+        {/* Close button for mobile */}
+        {onMobileClose && (
+          <button
+            onClick={onMobileClose}
+            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors lg:hidden"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
+        {/* Collapse/expand button for desktop */}
         <button
           onClick={onToggle}
-          className={cn(
-            'p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors',
-            collapsed && 'hidden'
-          )}
+          className="hidden lg:block p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
         >
-          <ChevronLeft className="h-5 w-5" />
+          {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
         </button>
       </div>
 

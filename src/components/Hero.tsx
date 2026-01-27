@@ -12,16 +12,16 @@ export function Hero() {
       <div className="max-w-[1400px] flex-1">
         <div className="p-4">
           <div
-            className="relative flex min-h-[580px] flex-col gap-8 bg-cover bg-center bg-no-repeat rounded-2xl items-center justify-center p-10 overflow-hidden"
+            className="relative flex min-h-[480px] sm:min-h-[580px] flex-col gap-6 sm:gap-8 bg-cover bg-center bg-no-repeat rounded-2xl items-center justify-center p-6 sm:p-10 overflow-hidden"
             style={{
               backgroundImage: `linear-gradient(rgba(16, 22, 34, 0.85) 0%, rgba(16, 22, 34, 0.95) 100%), url("https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=1920&q=80")`,
             }}
           >
-            <div className="flex flex-col gap-6 text-center max-w-[800px] z-10">
-              <h1 className="text-white text-5xl font-black leading-tight tracking-[-0.033em] md:text-7xl">
+            <div className="flex flex-col gap-4 sm:gap-6 text-center max-w-[800px] z-10 px-2">
+              <h1 className="text-white text-3xl sm:text-5xl font-black leading-tight tracking-[-0.033em] md:text-7xl">
                 Manage Tasks. Empower Teams. Scale Faster.
               </h1>
-              <p className="text-slate-300 text-xl font-normal leading-relaxed md:text-2xl">
+              <p className="text-slate-300 text-base sm:text-xl font-normal leading-relaxed md:text-2xl">
                 {settings.site_description || 'The all-in-one platform to organize work, collaborate in real-time, and hit your deadlines with precision.'}
               </p>
             </div>

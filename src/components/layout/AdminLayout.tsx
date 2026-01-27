@@ -10,9 +10,12 @@ import {
   Cog,
   Shield,
   ChevronLeft,
+  ChevronRight,
   LogOut,
   ArrowLeft,
   Loader2,
+  Menu,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -30,6 +33,7 @@ export function AdminLayout() {
   const { profile, loading, signOut } = useAuth();
   const { getSiteName } = usePlatformConfig();
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   if (loading) {
     return (
@@ -50,11 +54,21 @@ export function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-background-dark">
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
       {/* Admin Sidebar */}
       <aside
         className={cn(
           'fixed left-0 top-0 z-40 h-screen bg-zinc-900 border-r border-zinc-800 transition-all duration-300',
-          collapsed ? 'w-16' : 'w-64'
+          collapsed ? 'w-16' : 'w-64',
+          // Mobile: hidden by default, shown when mobileOpen
+          mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
       >
         {/* Logo */}
@@ -77,14 +91,19 @@ export function AdminLayout() {
               </div>
             </div>
           )}
+          {/* Close button for mobile */}
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors lg:hidden"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          {/* Collapse/expand button for desktop */}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className={cn(
-              'p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors',
-              collapsed && 'hidden'
-            )}
+            className="hidden lg:block p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
           >
-            <ChevronLeft className="h-5 w-5" />
+            {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
           </button>
         </div>
 
@@ -152,12 +171,19 @@ export function AdminLayout() {
         )}
       >
         {/* Admin Topbar */}
-        <header className="h-16 border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm flex items-center justify-between px-6">
-          <div>
+        <header className="h-16 border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm flex items-center justify-between px-4 sm:px-6">
+          <div className="flex items-center gap-3">
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors lg:hidden"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
             <h1 className="text-lg font-semibold text-white">Admin Panel</h1>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-zinc-400">
+            <span className="text-sm text-zinc-400 hidden sm:inline">
               Logged in as <span className="text-red-400 font-medium">{profile?.full_name}</span>
             </span>
           </div>

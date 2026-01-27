@@ -55,7 +55,8 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
 
         setSettings({
           site_name: configMap.site_name || defaultSettings.site_name,
-          site_description: configMap.site_description || defaultSettings.site_description,
+          // Allow empty description (use ?? to only fallback on null/undefined, not empty string)
+          site_description: configMap.site_description !== undefined ? configMap.site_description : defaultSettings.site_description,
           site_url: configMap.site_url || defaultSettings.site_url,
           support_email: configMap.support_email || defaultSettings.support_email,
           trial_days: parseInt(configMap.trial_days) || defaultSettings.trial_days,

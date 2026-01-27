@@ -38,7 +38,7 @@ function PricingCard({ plan }: { plan: Plan }) {
         </h3>
         <p className="flex items-baseline gap-1 text-slate-900 dark:text-white mt-2">
           <span className="text-4xl font-black leading-tight tracking-[-0.033em]">
-            ${Math.round(plan.price_monthly)}
+            €{Math.round(plan.price_monthly)}
           </span>
           <span className="text-base font-bold leading-tight text-slate-500 dark:text-slate-400">
             /month

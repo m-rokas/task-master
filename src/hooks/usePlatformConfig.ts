@@ -42,7 +42,13 @@ export function usePlatformConfig() {
     config: data || defaultConfig,
     isLoading,
     getSiteName: () => data?.site_name || defaultConfig.site_name,
-    getSiteDescription: () => data?.site_description || defaultConfig.site_description,
+    // Return empty string if explicitly set to empty, otherwise use value or default
+    getSiteDescription: () => {
+      if (data?.site_description !== undefined) {
+        return data.site_description; // Return as-is (including empty string)
+      }
+      return defaultConfig.site_description;
+    },
     getTrialDays: () => parseInt(data?.trial_days || defaultConfig.trial_days),
     isTrialEnabled: () => data?.trial_enabled === 'true',
   };

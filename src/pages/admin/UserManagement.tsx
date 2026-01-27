@@ -363,7 +363,7 @@ export default function UserManagement() {
             className="w-full pl-10 pr-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {(['all', 'active', 'inactive'] as const).map((status) => (
             <button
               key={status}
@@ -372,7 +372,7 @@ export default function UserManagement() {
                 setPage(1);
               }}
               className={cn(
-                'px-4 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                'px-4 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap',
                 statusFilter === status
                   ? 'bg-primary text-white'
                   : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
@@ -613,8 +613,8 @@ export default function UserManagement() {
             </div>
 
             {/* Pagination */}
-            <div className="px-6 py-4 border-t border-zinc-800 flex items-center justify-between">
-              <p className="text-sm text-zinc-500">
+            <div className="px-4 sm:px-6 py-4 border-t border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <p className="text-sm text-zinc-500 text-center sm:text-left">
                 Showing {(page - 1) * pageSize + 1}-
                 {Math.min(page * pageSize, totalCount)} of {totalCount} users
               </p>
