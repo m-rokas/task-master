@@ -305,6 +305,9 @@ export default function PlatformSettings() {
                       rows={3}
                       className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                     />
+                    <p className="text-xs text-zinc-500 mt-1">
+                      Platform description for SEO and meta tags
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-zinc-400 mb-1">
@@ -331,6 +334,9 @@ export default function PlatformSettings() {
                       onChange={(e) => updateSetting('support_email', e.target.value)}
                       className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary"
                     />
+                    <p className="text-xs text-zinc-500 mt-1">
+                      Contact email shown to users for support inquiries
+                    </p>
                   </div>
                 </div>
               </>
