@@ -86,7 +86,6 @@ export default function PlatformSettings() {
   const saveSettings = useMutation({
     mutationFn: async () => {
       console.log('Starting save settings...');
-      alert('Save started - check console for details');
 
       // Get existing keys
       const { data: existingConfigs, error: fetchError } = await supabase

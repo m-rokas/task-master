@@ -125,15 +125,9 @@ export default function Billing() {
 
   // Handle plan selection
   const handleSelectPlan = (plan: Plan) => {
-    console.log('Plan clicked:', plan.name, plan.id);
-    alert(`Plan clicked: ${plan.display_name}\nPrice: €${plan.price_monthly}/mo`);
+    if (isCurrentPlan(plan.id)) return;
 
-    if (isCurrentPlan(plan.id)) {
-      alert('This is already your current plan');
-      return;
-    }
-
-    // If downgrading to free, cancel via local logic
+    // If downgrading to free, cancel subscription
     if (plan.price_monthly === 0) {
       subscribeToPlan.mutate(plan.id);
       return;
@@ -142,16 +136,13 @@ export default function Billing() {
     // For paid plans:
     setPaymentError(null);
 
-    // If user already has an active paid subscription, redirect to Customer Portal
-    // (Stripe Portal handles upgrades/downgrades automatically)
+    // If user already has payment method and active subscription, update directly
     if (subscription && hasPaymentMethod && currentPlan && currentPlan.name !== 'free') {
-      alert('Redirecting to Stripe Customer Portal...');
-      redirectToStripePortal.mutate();
+      updateSubscription.mutate(plan.id);
       return;
     }
 
     // New subscription - redirect to Stripe Checkout
-    alert('Redirecting to Stripe Checkout...');
     redirectToStripeCheckout.mutate(plan.id);
   };
 
@@ -283,7 +274,54 @@ export default function Billing() {
     },
   });
 
-  // Redirect to Stripe Customer Portal
+  // Update subscription directly (for existing subscribers)
+  const updateSubscription = useMutation({
+    mutationFn: async (planId: string) => {
+      const response = await supabase.functions.invoke('stripe-update-subscription', {
+        body: {
+          userId: user?.id,
+          planId,
+          billingCycle,
+        },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to update subscription');
+      }
+
+      const data = response.data as {
+        success?: boolean;
+        error?: string;
+        message?: string;
+        requiresCheckout?: boolean;
+      };
+
+      if (data.error) {
+        // If requires checkout, redirect there
+        if (data.requiresCheckout) {
+          redirectToStripeCheckout.mutate(planId);
+          return;
+        }
+        throw new Error(data.message || data.error);
+      }
+
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['user-subscription'] });
+      queryClient.invalidateQueries({ queryKey: ['user-payments'] });
+      refreshProfile();
+      if (data?.message) {
+        alert(data.message);
+      }
+    },
+    onError: (error: Error) => {
+      console.error('Update subscription error:', error);
+      setPaymentError(error.message);
+    },
+  });
+
+  // Redirect to Stripe Customer Portal (for payment method management)
   const redirectToStripePortal = useMutation({
     mutationFn: async () => {
       console.log('Opening Stripe Portal...');
@@ -640,7 +678,7 @@ export default function Billing() {
 
               <button
                 onClick={() => handleSelectPlan(plan)}
-                disabled={isCurrent || subscribeToPlan.isPending || redirectToStripeCheckout.isPending || redirectToStripePortal.isPending}
+                disabled={isCurrent || subscribeToPlan.isPending || redirectToStripeCheckout.isPending || redirectToStripePortal.isPending || updateSubscription.isPending}
                 className={cn(
                   'w-full py-3 rounded-lg font-semibold transition-all',
                   isCurrent
@@ -652,7 +690,7 @@ export default function Billing() {
                     : 'bg-zinc-700 text-white hover:bg-zinc-600'
                 )}
               >
-                {(subscribeToPlan.isPending || redirectToStripeCheckout.isPending || redirectToStripePortal.isPending) ? (
+                {(subscribeToPlan.isPending || redirectToStripeCheckout.isPending || redirectToStripePortal.isPending || updateSubscription.isPending) ? (
                   <Loader2 className="h-5 w-5 animate-spin mx-auto" />
                 ) : (
                   getButtonText(plan)

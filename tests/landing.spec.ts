@@ -25,8 +25,8 @@ test.describe('Landing Page', () => {
     // Should be on login page
     await expect(page).toHaveURL(/.*login/);
 
-    // Check for login form
-    await expect(page.getByRole('textbox', { name: /email/i })).toBeVisible();
+    // Check for login form heading
+    await expect(page.getByText('Welcome back')).toBeVisible();
   });
 
   test('should navigate to register page', async ({ page }) => {

@@ -1,0 +1,46 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - img [ref=e9]
+      - heading "TaskMaster" [level=2] [ref=e11]
+    - generic [ref=e12]:
+      - heading "Master your workflow, achieve more every day." [level=1] [ref=e13]
+      - paragraph [ref=e14]: Join over 10,000 teams using TaskMaster to organize, track, and complete their most important work.
+    - generic [ref=e15]: © 2026 TaskMaster Inc. All rights reserved.
+  - generic [ref=e17]:
+    - generic [ref=e18]:
+      - heading "Welcome back" [level=2] [ref=e19]
+      - paragraph [ref=e20]: Sign in to your account to continue.
+    - generic [ref=e21]:
+      - generic [ref=e22]:
+        - generic [ref=e23]: Email Address
+        - textbox "name@company.com" [ref=e24]
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - generic [ref=e27]: Password
+          - link "Forgot password?" [ref=e28] [cursor=pointer]:
+            - /url: /forgot-password
+        - generic [ref=e29]:
+          - textbox "••••••••" [ref=e30]
+          - button [ref=e31]:
+            - img [ref=e32]
+      - generic [ref=e35]:
+        - checkbox "Remember me for 30 days" [ref=e36]
+        - generic [ref=e37] [cursor=pointer]: Remember me for 30 days
+      - button "Sign In" [ref=e38]
+    - generic [ref=e43]: Or continue with
+    - generic [ref=e44]:
+      - button "Google" [ref=e45]:
+        - img [ref=e46]
+        - text: Google
+      - button "Slack" [ref=e51]:
+        - img [ref=e52]
+        - text: Slack
+    - paragraph [ref=e54]:
+      - text: Don't have an account?
+      - link "Sign up for free" [ref=e55] [cursor=pointer]:
+        - /url: /register
+```

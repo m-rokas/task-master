@@ -1,0 +1,60 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - img [ref=e7]
+      - generic [ref=e9]: TaskMaster
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - heading "Master your productivity." [level=1] [ref=e12]
+        - paragraph [ref=e13]: Organize your workflow, collaborate with ease, and track progress in real-time. Join 10,000+ high-performing teams.
+      - generic [ref=e14]:
+        - generic [ref=e15]:
+          - img [ref=e17]
+          - generic [ref=e22]:
+            - heading "Organize your workflow" [level=3] [ref=e23]
+            - paragraph [ref=e24]: Customizable boards and list views for every project type.
+        - generic [ref=e25]:
+          - img [ref=e27]
+          - generic [ref=e32]:
+            - heading "Collaborate with ease" [level=3] [ref=e33]
+            - paragraph [ref=e34]: Real-time comments, file sharing, and team permissions.
+  - generic [ref=e37]:
+    - generic [ref=e38]:
+      - heading "Create your account" [level=2] [ref=e39]
+      - paragraph [ref=e40]: Join over 10,000 teams managing work effectively.
+    - generic [ref=e41]:
+      - button "Sign up with Google" [ref=e42] [cursor=pointer]:
+        - img [ref=e43]
+        - text: Sign up with Google
+      - generic [ref=e50]: Or with email
+      - generic [ref=e52]:
+        - generic [ref=e53]: Full Name
+        - textbox "Enter your full name" [ref=e54]
+      - generic [ref=e55]:
+        - generic [ref=e56]: Work Email
+        - textbox "name@company.com" [ref=e57]
+      - generic [ref=e58]:
+        - generic [ref=e59]: Create Password
+        - generic [ref=e60]:
+          - textbox "At least 8 characters" [ref=e61]
+          - button [ref=e62] [cursor=pointer]:
+            - img [ref=e63]
+      - generic [ref=e66]:
+        - checkbox "By signing up, I agree to the Terms of Service and Privacy Policy." [ref=e67]
+        - generic [ref=e68] [cursor=pointer]:
+          - text: By signing up, I agree to the
+          - link "Terms of Service" [ref=e69]:
+            - /url: "#"
+          - text: and
+          - link "Privacy Policy" [ref=e70]:
+            - /url: "#"
+          - text: .
+      - button "Get Started" [ref=e71] [cursor=pointer]
+      - paragraph [ref=e72]:
+        - text: Already have an account?
+        - link "Log in" [ref=e73] [cursor=pointer]:
+          - /url: /login
+```
