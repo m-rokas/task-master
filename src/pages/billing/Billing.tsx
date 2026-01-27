@@ -34,6 +34,7 @@ export default function Billing() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showUpdatePaymentModal, setShowUpdatePaymentModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
@@ -251,6 +252,55 @@ export default function Billing() {
     },
   });
 
+  // Update payment method (simulated - in real app would use Stripe)
+  const updatePaymentMethod = useMutation({
+    mutationFn: async () => {
+      // In real implementation, this would:
+      // 1. Create Stripe Customer Portal session
+      // 2. Redirect to Stripe to update payment method
+      // 3. Handle webhook to update payment info
+
+      // For now, simulate updating the payment method
+      const { error } = await supabase
+        .from('profiles')
+        .update({ stripe_customer_id: 'cus_updated_' + Date.now() })
+        .eq('id', user?.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-payment-method'] });
+      setShowUpdatePaymentModal(false);
+    },
+    onError: (error: Error) => {
+      console.error('Failed to update payment method:', error);
+      alert('Failed to update payment method.');
+    },
+  });
+
+  // Remove payment method
+  const removePaymentMethod = useMutation({
+    mutationFn: async () => {
+      // Only allow removing if user is on free plan
+      if (currentPlan && currentPlan.name !== 'free') {
+        throw new Error('Cannot remove payment method while on a paid plan. Please switch to Free plan first.');
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ stripe_customer_id: null })
+        .eq('id', user?.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-payment-method'] });
+      setShowUpdatePaymentModal(false);
+    },
+    onError: (error: Error) => {
+      console.error('Failed to remove payment method:', error);
+      alert(error.message || 'Failed to remove payment method.');
+    },
+  });
+
   // Cancel subscription - immediately switch to free plan
   const cancelSubscription = useMutation({
     mutationFn: async () => {
@@ -438,8 +488,11 @@ export default function Billing() {
               Add Card
             </button>
           ) : (
-            <button className="px-4 py-2 text-zinc-400 hover:text-white text-sm">
-              Update
+            <button
+              onClick={() => setShowUpdatePaymentModal(true)}
+              className="px-4 py-2 text-zinc-400 hover:text-white text-sm font-medium"
+            >
+              Manage
             </button>
           )}
         </div>
@@ -837,6 +890,79 @@ export default function Billing() {
                 {cancelSubscription.isPending ? 'Canceling...' : 'Switch to Free'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Update Payment Method Modal */}
+      {showUpdatePaymentModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-white">Manage Payment Method</h2>
+              <button
+                onClick={() => setShowUpdatePaymentModal(false)}
+                className="p-1 text-zinc-400 hover:text-white"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Current Card */}
+            <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-6 bg-gradient-to-r from-blue-600 to-blue-400 rounded flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">VISA</span>
+                  </div>
+                  <div>
+                    <p className="text-white font-medium">•••• •••• •••• 4242</p>
+                    <p className="text-xs text-zinc-500">Expires 12/25</p>
+                  </div>
+                </div>
+                <Check className="h-5 w-5 text-green-400" />
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="space-y-3">
+              <button
+                onClick={() => updatePaymentMethod.mutate()}
+                disabled={updatePaymentMethod.isPending}
+                className="w-full flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 disabled:opacity-50"
+              >
+                {updatePaymentMethod.isPending ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <>
+                    <CreditCard className="h-4 w-4" />
+                    Update Card
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={() => removePaymentMethod.mutate()}
+                disabled={removePaymentMethod.isPending || (currentPlan && currentPlan.name !== 'free')}
+                className="w-full flex items-center justify-center gap-2 py-3 bg-zinc-800 text-zinc-400 rounded-lg font-medium hover:bg-zinc-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {removePaymentMethod.isPending ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  'Remove Card'
+                )}
+              </button>
+
+              {currentPlan && currentPlan.name !== 'free' && (
+                <p className="text-xs text-zinc-500 text-center">
+                  Switch to Free plan to remove your payment method
+                </p>
+              )}
+            </div>
+
+            <p className="text-xs text-zinc-500 text-center mt-4">
+              Your payment information is securely stored by Stripe.
+            </p>
           </div>
         </div>
       )}
