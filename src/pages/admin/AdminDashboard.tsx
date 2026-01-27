@@ -61,21 +61,36 @@ export default function AdminDashboard() {
           planCounts[planName] = (planCounts[planName] || 0) + 1;
         });
 
-        // Fetch subscription stats
-        const { data: subData } = await supabase
-          .from('profiles')
-          .select('id, subscriptions(status)');
+        // Fetch subscription stats - direct query to subscriptions table
+        const { data: allSubscriptions } = await supabase
+          .from('subscriptions')
+          .select('user_id, status');
 
+        // Get unique users with subscriptions
+        const usersWithSubs = new Set(allSubscriptions?.map(s => s.user_id) || []);
+
+        // Count subscriptions by status (using latest subscription per user)
         const subCounts: Record<string, number> = { free: 0, active: 0, trialing: 0, canceled: 0, past_due: 0 };
-        subData?.forEach((p: any) => {
-          const sub = Array.isArray(p.subscriptions) ? p.subscriptions[0] : p.subscriptions;
-          if (sub) {
-            const status = sub.status || 'free';
-            subCounts[status] = (subCounts[status] || 0) + 1;
-          } else {
-            subCounts['free'] = (subCounts['free'] || 0) + 1;
+
+        // Group by user and get the latest status
+        const userSubStatus: Record<string, string> = {};
+        allSubscriptions?.forEach((s: any) => {
+          // If user already has a status, keep the "best" one (active > trialing > others)
+          const priority: Record<string, number> = { active: 3, trialing: 2, past_due: 1, canceled: 0 };
+          const currentPriority = priority[userSubStatus[s.user_id]] ?? -1;
+          const newPriority = priority[s.status] ?? -1;
+          if (newPriority > currentPriority) {
+            userSubStatus[s.user_id] = s.status;
           }
         });
+
+        // Count statuses
+        Object.values(userSubStatus).forEach(status => {
+          subCounts[status] = (subCounts[status] || 0) + 1;
+        });
+
+        // Count free users (users without any subscription)
+        subCounts['free'] = (totalUsers || 0) - usersWithSubs.size;
 
         setStats({
           totalUsers: totalUsers || 0,
