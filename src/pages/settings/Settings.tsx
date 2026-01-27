@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   User,
@@ -7,31 +7,82 @@ import {
   Loader2,
   Check,
   Camera,
+  AlertCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type SettingsTab = 'profile' | 'notifications' | 'security';
 
 export default function Settings() {
-  const { user, profile, updateProfile, signOut } = useAuth();
+  const { user, profile, updateProfile, updatePassword, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     full_name: profile?.full_name || '',
     language: profile?.language || 'en',
   });
 
+  const [passwordData, setPasswordData] = useState({
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [passwordSaved, setPasswordSaved] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  // Sync form data when profile loads
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        full_name: profile.full_name || '',
+        language: profile.language || 'en',
+      });
+    }
+  }, [profile]);
+
   const handleSaveProfile = async () => {
     setSaving(true);
-    await updateProfile({
+    setError(null);
+    const { error: updateError } = await updateProfile({
       full_name: formData.full_name,
       language: formData.language,
     });
     setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    if (updateError) {
+      setError(updateError.message);
+    } else {
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    setPasswordError(null);
+
+    if (passwordData.newPassword.length < 6) {
+      setPasswordError('Password must be at least 6 characters');
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+
+    setSavingPassword(true);
+    const { error: pwError } = await updatePassword(passwordData.newPassword);
+    setSavingPassword(false);
+
+    if (pwError) {
+      setPasswordError(pwError.message);
+    } else {
+      setPasswordSaved(true);
+      setPasswordData({ newPassword: '', confirmPassword: '' });
+      setTimeout(() => setPasswordSaved(false), 2000);
+    }
   };
 
   const tabs = [
@@ -144,6 +195,13 @@ export default function Settings() {
                 </div>
               </div>
 
+              {error && (
+                <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 px-3 py-2 rounded-lg">
+                  <AlertCircle className="h-4 w-4" />
+                  {error}
+                </div>
+              )}
+
               <button
                 onClick={handleSaveProfile}
                 disabled={saving}
@@ -216,6 +274,8 @@ export default function Settings() {
                     <input
                       type="password"
                       placeholder="Enter new password"
+                      value={passwordData.newPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                       className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
@@ -226,10 +286,32 @@ export default function Settings() {
                     <input
                       type="password"
                       placeholder="Confirm new password"
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                       className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
-                  <button className="px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90">
+
+                  {passwordError && (
+                    <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 px-3 py-2 rounded-lg">
+                      <AlertCircle className="h-4 w-4" />
+                      {passwordError}
+                    </div>
+                  )}
+
+                  {passwordSaved && (
+                    <div className="flex items-center gap-2 text-green-400 text-sm bg-green-500/10 px-3 py-2 rounded-lg">
+                      <Check className="h-4 w-4" />
+                      Password updated successfully!
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleChangePassword}
+                    disabled={savingPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+                    className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50"
+                  >
+                    {savingPassword && <Loader2 className="h-4 w-4 animate-spin" />}
                     Update Password
                   </button>
                 </div>
