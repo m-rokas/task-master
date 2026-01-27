@@ -459,9 +459,9 @@ export default function Billing() {
     if (targetPrice === 0) {
       return 'Downgrade to Free';
     } else if (targetPrice > currentPrice) {
-      return 'Upgrade via Stripe';
+      return 'Upgrade Plan';
     } else {
-      return 'Switch via Stripe';
+      return 'Upgrade Plan';
     }
   };
 

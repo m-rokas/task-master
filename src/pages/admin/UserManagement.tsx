@@ -66,6 +66,8 @@ export default function UserManagement() {
   const [totalCount, setTotalCount] = useState(0);
   const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
   const [changePlanUser, setChangePlanUser] = useState<UserProfile | null>(null);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string>('active');
   const [editUser, setEditUser] = useState<UserProfile | null>(null);
   const [editForm, setEditForm] = useState({ full_name: '', email: '', new_password: '' });
   const [saving, setSaving] = useState(false);
@@ -231,7 +233,7 @@ export default function UserManagement() {
     setActionMenuOpen(null);
   }
 
-  async function changeUserPlan(userId: string, planId: string) {
+  async function changeUserPlan(userId: string, planId: string, status: string) {
     try {
       // Update profile's plan
       const { error: profileError } = await supabase
@@ -242,8 +244,8 @@ export default function UserManagement() {
       if (profileError) throw profileError;
 
       // Also update or create subscription
-      const selectedPlan = plans.find(p => p.id === planId);
-      const isFree = selectedPlan?.name === 'free';
+      const selectedPlanData = plans.find(p => p.id === planId);
+      const isFree = selectedPlanData?.name === 'free';
 
       // Check if user has existing subscription
       const { data: existingSub } = await supabase
@@ -253,7 +255,12 @@ export default function UserManagement() {
         .maybeSingle();
 
       const periodEnd = new Date();
-      periodEnd.setMonth(periodEnd.getMonth() + 1);
+      // For trial, set 14 days; otherwise 1 month
+      if (status === 'trialing') {
+        periodEnd.setDate(periodEnd.getDate() + 14);
+      } else {
+        periodEnd.setMonth(periodEnd.getMonth() + 1);
+      }
 
       if (existingSub) {
         // Update existing subscription
@@ -261,7 +268,8 @@ export default function UserManagement() {
           .from('subscriptions')
           .update({
             plan_id: planId,
-            status: isFree ? 'canceled' : 'active',
+            status: isFree ? 'canceled' : status,
+            current_period_start: new Date().toISOString(),
             current_period_end: periodEnd.toISOString(),
           })
           .eq('id', existingSub.id);
@@ -272,19 +280,27 @@ export default function UserManagement() {
           .insert({
             user_id: userId,
             plan_id: planId,
-            status: 'active',
+            status: status,
             current_period_start: new Date().toISOString(),
             current_period_end: periodEnd.toISOString(),
           });
       }
 
-      setMessage({ type: 'success', text: `Plan changed to ${selectedPlan?.display_name || 'Unknown'}` });
+      const statusLabels: Record<string, string> = {
+        active: 'Active',
+        trialing: 'Trial',
+        canceled: 'Canceled',
+        past_due: 'Past Due',
+      };
+      setMessage({ type: 'success', text: `Plan changed to ${selectedPlanData?.display_name || 'Unknown'} (${statusLabels[status] || status})` });
       fetchUsers();
     } catch (error: any) {
       console.error('Error updating user plan:', error);
       setMessage({ type: 'error', text: error.message || 'Failed to change plan' });
     }
     setChangePlanUser(null);
+    setSelectedPlanId(null);
+    setSelectedStatus('active');
   }
 
   async function deleteUser(userId: string, userName: string) {
@@ -563,6 +579,8 @@ export default function UserManagement() {
                             <button
                               onClick={() => {
                                 setChangePlanUser(user);
+                                setSelectedPlanId(user.plans?.id || null);
+                                setSelectedStatus(user.subscriptions?.[0]?.status || 'active');
                                 setActionMenuOpen(null);
                               }}
                               className="w-full px-4 py-2 text-left text-sm hover:bg-zinc-700 flex items-center gap-2"
@@ -626,48 +644,105 @@ export default function UserManagement() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-white">Change User Plan</h2>
+              <h2 className="text-xl font-bold text-white">Change User Plan & Status</h2>
               <button
-                onClick={() => setChangePlanUser(null)}
+                onClick={() => {
+                  setChangePlanUser(null);
+                  setSelectedPlanId(null);
+                  setSelectedStatus('active');
+                }}
                 className="p-1 text-zinc-400 hover:text-white"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <p className="text-zinc-400 mb-6">
+            <p className="text-zinc-400 mb-4">
               Change plan for <span className="text-white font-medium">{changePlanUser.full_name || 'Unnamed User'}</span>
             </p>
-            <div className="space-y-2">
-              {plans.map((plan) => (
-                <button
-                  key={plan.id}
-                  onClick={() => changeUserPlan(changePlanUser.id, plan.id)}
-                  className={cn(
-                    'w-full px-4 py-3 rounded-lg text-left flex items-center justify-between transition-colors',
-                    changePlanUser.plans?.id === plan.id
-                      ? 'bg-primary/20 border-2 border-primary'
-                      : 'bg-zinc-800 border-2 border-transparent hover:border-zinc-600'
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <Package className={cn(
-                      'h-5 w-5',
-                      plan.name === 'free' ? 'text-zinc-400' : plan.name === 'pro' ? 'text-blue-400' : 'text-purple-400'
-                    )} />
-                    <span className="text-white font-medium">{plan.display_name}</span>
-                  </div>
-                  {changePlanUser.plans?.id === plan.id && (
-                    <span className="text-xs text-primary">Current</span>
-                  )}
-                </button>
-              ))}
+
+            {/* Plan Selection */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-zinc-400 mb-2">Select Plan</label>
+              <div className="space-y-2">
+                {plans.map((plan) => {
+                  const isSelected = selectedPlanId ? selectedPlanId === plan.id : changePlanUser.plans?.id === plan.id;
+                  return (
+                    <button
+                      key={plan.id}
+                      onClick={() => setSelectedPlanId(plan.id)}
+                      className={cn(
+                        'w-full px-4 py-3 rounded-lg text-left flex items-center justify-between transition-colors',
+                        isSelected
+                          ? 'bg-primary/20 border-2 border-primary'
+                          : 'bg-zinc-800 border-2 border-transparent hover:border-zinc-600'
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Package className={cn(
+                          'h-5 w-5',
+                          plan.name === 'free' ? 'text-zinc-400' : plan.name === 'pro' ? 'text-blue-400' : 'text-purple-400'
+                        )} />
+                        <span className="text-white font-medium">{plan.display_name}</span>
+                      </div>
+                      {changePlanUser.plans?.id === plan.id && (
+                        <span className="text-xs text-zinc-500">Current</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <div className="mt-6 flex justify-end">
+
+            {/* Status Selection */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-zinc-400 mb-2">Subscription Status</label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { value: 'active', label: 'Active', color: 'bg-green-500/20 text-green-400 border-green-500' },
+                  { value: 'trialing', label: 'Trial', color: 'bg-blue-500/20 text-blue-400 border-blue-500' },
+                  { value: 'past_due', label: 'Past Due', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500' },
+                  { value: 'canceled', label: 'Canceled', color: 'bg-red-500/20 text-red-400 border-red-500' },
+                ].map((status) => (
+                  <button
+                    key={status.value}
+                    onClick={() => setSelectedStatus(status.value)}
+                    className={cn(
+                      'px-3 py-2 rounded-lg text-sm font-medium transition-colors border-2',
+                      selectedStatus === status.value
+                        ? status.color
+                        : 'bg-zinc-800 text-zinc-400 border-transparent hover:border-zinc-600'
+                    )}
+                  >
+                    {status.label}
+                  </button>
+                ))}
+              </div>
+              {selectedStatus === 'trialing' && (
+                <p className="text-xs text-blue-400 mt-2">Trial period: 14 days</p>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3">
               <button
-                onClick={() => setChangePlanUser(null)}
+                onClick={() => {
+                  setChangePlanUser(null);
+                  setSelectedPlanId(null);
+                  setSelectedStatus('active');
+                }}
                 className="px-4 py-2 text-zinc-400 hover:text-white"
               >
                 Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const planId = selectedPlanId || changePlanUser.plans?.id;
+                  if (planId) {
+                    changeUserPlan(changePlanUser.id, planId, selectedStatus);
+                  }
+                }}
+                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+              >
+                Save Changes
               </button>
             </div>
           </div>
