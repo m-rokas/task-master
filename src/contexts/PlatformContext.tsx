@@ -86,6 +86,16 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
     }
   }, [settings.site_name]);
 
+  // Update meta description when site_description changes
+  useEffect(() => {
+    if (settings.site_description) {
+      const metaDescription = document.querySelector('meta[name="description"]');
+      if (metaDescription) {
+        metaDescription.setAttribute('content', settings.site_description);
+      }
+    }
+  }, [settings.site_description]);
+
   return (
     <PlatformContext.Provider value={{ settings, loading, refreshSettings }}>
       {children}
