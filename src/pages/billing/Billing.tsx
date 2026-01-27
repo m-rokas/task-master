@@ -13,7 +13,6 @@ import {
   Crown,
   CreditCard,
   X,
-  ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -32,9 +31,7 @@ export default function Billing() {
   const { user, plan: currentPlan, refreshProfile } = useAuth();
   const queryClient = useQueryClient();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [showUpdatePaymentModal, setShowUpdatePaymentModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
@@ -132,16 +129,16 @@ export default function Billing() {
   const handleSelectPlan = (plan: Plan) => {
     if (isCurrentPlan(plan.id)) return;
 
-    // If downgrading to free, just do it
+    // If downgrading to free, just do it locally
     if (plan.price_monthly === 0) {
       subscribeToPlan.mutate(plan.id);
       return;
     }
 
-    // For paid plans, check if we have payment method
+    // For paid plans, redirect to Stripe Checkout
     setSelectedPlan(plan);
     setPaymentError(null);
-    setShowPaymentModal(true);
+    redirectToStripeCheckout.mutate(plan.id);
   };
 
   // Subscribe to plan
@@ -225,79 +222,66 @@ export default function Billing() {
     },
   });
 
-  // Add payment method (simulated - in real app would redirect to Stripe)
-  const addPaymentMethod = useMutation({
-    mutationFn: async () => {
-      // In real implementation, this would:
-      // 1. Create Stripe checkout session for setup
-      // 2. Redirect to Stripe
-      // 3. Handle webhook to save payment method
+  // Redirect to Stripe Checkout for subscription
+  const redirectToStripeCheckout = useMutation({
+    mutationFn: async (planId: string) => {
+      const response = await supabase.functions.invoke('stripe-checkout', {
+        body: {
+          planId,
+          billingCycle,
+          userId: user?.id,
+          successUrl: `${window.location.origin}/billing?success=true`,
+          cancelUrl: `${window.location.origin}/billing?canceled=true`,
+        },
+      });
 
-      // For now, simulate adding a payment method
-      const { error } = await supabase
-        .from('profiles')
-        .update({ stripe_customer_id: 'cus_simulated_' + Date.now() })
-        .eq('id', user?.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-payment-method'] });
-      // After adding payment method, complete the subscription
-      if (selectedPlan) {
-        subscribeToPlan.mutate(selectedPlan.id);
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to create checkout session');
+      }
+
+      const data = response.data as { url?: string; error?: string; message?: string };
+
+      if (data.error) {
+        throw new Error(data.message || data.error);
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
       }
     },
     onError: (error: Error) => {
+      console.error('Stripe checkout error:', error);
       setPaymentError(error.message);
     },
   });
 
-  // Update payment method (simulated - in real app would use Stripe)
-  const updatePaymentMethod = useMutation({
+  // Redirect to Stripe Customer Portal
+  const redirectToStripePortal = useMutation({
     mutationFn: async () => {
-      // In real implementation, this would:
-      // 1. Create Stripe Customer Portal session
-      // 2. Redirect to Stripe to update payment method
-      // 3. Handle webhook to update payment info
+      const response = await supabase.functions.invoke('stripe-portal', {
+        body: {
+          userId: user?.id,
+          returnUrl: `${window.location.origin}/billing`,
+        },
+      });
 
-      // For now, simulate updating the payment method
-      const { error } = await supabase
-        .from('profiles')
-        .update({ stripe_customer_id: 'cus_updated_' + Date.now() })
-        .eq('id', user?.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-payment-method'] });
-      setShowUpdatePaymentModal(false);
-    },
-    onError: (error: Error) => {
-      console.error('Failed to update payment method:', error);
-      alert('Failed to update payment method.');
-    },
-  });
-
-  // Remove payment method
-  const removePaymentMethod = useMutation({
-    mutationFn: async () => {
-      // Only allow removing if user is on free plan
-      if (currentPlan && currentPlan.name !== 'free') {
-        throw new Error('Cannot remove payment method while on a paid plan. Please switch to Free plan first.');
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to create portal session');
       }
 
-      const { error } = await supabase
-        .from('profiles')
-        .update({ stripe_customer_id: null })
-        .eq('id', user?.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-payment-method'] });
-      setShowUpdatePaymentModal(false);
+      const data = response.data as { url?: string; error?: string };
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+      }
     },
     onError: (error: Error) => {
-      console.error('Failed to remove payment method:', error);
-      alert(error.message || 'Failed to remove payment method.');
+      console.error('Stripe portal error:', error);
+      alert(error.message || 'Failed to open payment management.');
     },
   });
 
@@ -394,9 +378,9 @@ export default function Billing() {
     if (targetPrice === 0) {
       return 'Downgrade to Free';
     } else if (targetPrice > currentPrice) {
-      return !hasPaymentMethod ? 'Add Card & Upgrade' : 'Upgrade Now';
+      return 'Upgrade via Stripe';
     } else {
-      return 'Switch Plan';
+      return 'Switch via Stripe';
     }
   };
 
@@ -417,16 +401,22 @@ export default function Billing() {
         </p>
       </div>
 
-      {/* Development Notice */}
-      <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
-        <div className="flex items-center gap-2 text-yellow-400">
-          <AlertCircle className="h-5 w-5" />
-          <span className="font-medium">Demo Mode</span>
+      {/* Stripe Error Display */}
+      {paymentError && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+          <div className="flex items-center gap-2 text-red-400">
+            <AlertCircle className="h-5 w-5" />
+            <span className="font-medium">Payment Error</span>
+          </div>
+          <p className="text-sm text-zinc-400 mt-1">{paymentError}</p>
+          <button
+            onClick={() => setPaymentError(null)}
+            className="text-sm text-red-400 hover:text-red-300 mt-2"
+          >
+            Dismiss
+          </button>
         </div>
-        <p className="text-sm text-zinc-400 mt-1">
-          Stripe integration is simulated. No real payments will be processed.
-        </p>
-      </div>
+      )}
 
       {/* Current Subscription Status - Only show for trial or paid plans */}
       {subscription && currentPlan && currentPlan.name !== 'free' && (
@@ -488,22 +478,13 @@ export default function Billing() {
               </p>
             </div>
           </div>
-          {!hasPaymentMethod ? (
+          {hasPaymentMethod && (
             <button
-              onClick={() => {
-                setSelectedPlan(null);
-                setShowPaymentModal(true);
-              }}
-              className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90"
+              onClick={() => redirectToStripePortal.mutate()}
+              disabled={redirectToStripePortal.isPending}
+              className="px-4 py-2 text-zinc-400 hover:text-white text-sm font-medium disabled:opacity-50"
             >
-              Add Card
-            </button>
-          ) : (
-            <button
-              onClick={() => setShowUpdatePaymentModal(true)}
-              className="px-4 py-2 text-zinc-400 hover:text-white text-sm font-medium"
-            >
-              Manage
+              {redirectToStripePortal.isPending ? 'Opening...' : 'Manage in Stripe'}
             </button>
           )}
         </div>
@@ -765,114 +746,6 @@ export default function Billing() {
         </div>
       )}
 
-      {/* Payment Modal */}
-      {showPaymentModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-md p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white">
-                {selectedPlan ? `Upgrade to ${selectedPlan.display_name}` : 'Add Payment Method'}
-              </h2>
-              <button
-                onClick={() => {
-                  setShowPaymentModal(false);
-                  setSelectedPlan(null);
-                  setPaymentError(null);
-                }}
-                className="p-1 text-zinc-400 hover:text-white"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {paymentError && (
-              <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm p-3 rounded-lg mb-4">
-                {paymentError}
-              </div>
-            )}
-
-            {selectedPlan && (
-              <div className="bg-zinc-800 rounded-lg p-4 mb-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-white font-medium">{selectedPlan.display_name}</p>
-                    <p className="text-sm text-zinc-500">
-                      Billed {billingCycle}
-                    </p>
-                  </div>
-                  <p className="text-xl font-bold text-white">
-                    €{billingCycle === 'yearly' ? selectedPlan.price_yearly : selectedPlan.price_monthly}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {!hasPaymentMethod ? (
-              <div className="space-y-4">
-                <p className="text-zinc-400 text-sm">
-                  You need to add a payment method to upgrade to a paid plan.
-                </p>
-                <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <CreditCard className="h-5 w-5 text-zinc-400" />
-                    <span className="text-white font-medium">Credit or Debit Card</span>
-                  </div>
-                  <p className="text-xs text-zinc-500">
-                    Secure payment processed by Stripe. Your card details are never stored on our servers.
-                  </p>
-                </div>
-                <button
-                  onClick={() => addPaymentMethod.mutate()}
-                  disabled={addPaymentMethod.isPending}
-                  className="w-full flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 disabled:opacity-50"
-                >
-                  {addPaymentMethod.isPending ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <>
-                      <ExternalLink className="h-4 w-4" />
-                      Add Payment Method
-                    </>
-                  )}
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-6 bg-gradient-to-r from-blue-600 to-blue-400 rounded flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">VISA</span>
-                      </div>
-                      <div>
-                        <p className="text-white font-medium">•••• •••• •••• 4242</p>
-                        <p className="text-xs text-zinc-500">Expires 12/25</p>
-                      </div>
-                    </div>
-                    <Check className="h-5 w-5 text-green-400" />
-                  </div>
-                </div>
-                <button
-                  onClick={() => selectedPlan && subscribeToPlan.mutate(selectedPlan.id)}
-                  disabled={subscribeToPlan.isPending || !selectedPlan}
-                  className="w-full py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 disabled:opacity-50"
-                >
-                  {subscribeToPlan.isPending ? (
-                    <Loader2 className="h-5 w-5 animate-spin mx-auto" />
-                  ) : (
-                    `Pay €${selectedPlan ? (billingCycle === 'yearly' ? selectedPlan.price_yearly : selectedPlan.price_monthly) : 0}`
-                  )}
-                </button>
-              </div>
-            )}
-
-            <p className="text-xs text-zinc-500 text-center mt-4">
-              By proceeding, you agree to our Terms of Service and authorize recurring charges.
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Cancel Modal */}
       {showCancelModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -905,78 +778,6 @@ export default function Billing() {
         </div>
       )}
 
-      {/* Update Payment Method Modal */}
-      {showUpdatePaymentModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-md p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white">Manage Payment Method</h2>
-              <button
-                onClick={() => setShowUpdatePaymentModal(false)}
-                className="p-1 text-zinc-400 hover:text-white"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {/* Current Card */}
-            <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-4 mb-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-6 bg-gradient-to-r from-blue-600 to-blue-400 rounded flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">VISA</span>
-                  </div>
-                  <div>
-                    <p className="text-white font-medium">•••• •••• •••• 4242</p>
-                    <p className="text-xs text-zinc-500">Expires 12/25</p>
-                  </div>
-                </div>
-                <Check className="h-5 w-5 text-green-400" />
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="space-y-3">
-              <button
-                onClick={() => updatePaymentMethod.mutate()}
-                disabled={updatePaymentMethod.isPending}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 disabled:opacity-50"
-              >
-                {updatePaymentMethod.isPending ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <>
-                    <CreditCard className="h-4 w-4" />
-                    Update Card
-                  </>
-                )}
-              </button>
-
-              <button
-                onClick={() => removePaymentMethod.mutate()}
-                disabled={removePaymentMethod.isPending || (currentPlan && currentPlan.name !== 'free')}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-zinc-800 text-zinc-400 rounded-lg font-medium hover:bg-zinc-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {removePaymentMethod.isPending ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  'Remove Card'
-                )}
-              </button>
-
-              {currentPlan && currentPlan.name !== 'free' && (
-                <p className="text-xs text-zinc-500 text-center">
-                  Switch to Free plan to remove your payment method
-                </p>
-              )}
-            </div>
-
-            <p className="text-xs text-zinc-500 text-center mt-4">
-              Your payment information is securely stored by Stripe.
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
