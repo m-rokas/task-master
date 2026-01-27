@@ -417,8 +417,19 @@ export default function Billing() {
         </p>
       </div>
 
-      {/* Current Subscription Status */}
-      {subscription && (
+      {/* Development Notice */}
+      <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
+        <div className="flex items-center gap-2 text-yellow-400">
+          <AlertCircle className="h-5 w-5" />
+          <span className="font-medium">Demo Mode</span>
+        </div>
+        <p className="text-sm text-zinc-400 mt-1">
+          Stripe integration is simulated. No real payments will be processed.
+        </p>
+      </div>
+
+      {/* Current Subscription Status - Only show for trial or paid plans */}
+      {subscription && currentPlan && currentPlan.name !== 'free' && (
         <div className={cn(
           "border rounded-xl p-4",
           subscription.status === 'trialing'

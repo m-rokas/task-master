@@ -113,14 +113,22 @@ export default function PlatformSettings() {
 
       // Update existing records one by one
       for (const record of updates) {
-        const { error } = await supabase
+        console.log(`Updating ${record.key} to: ${record.value}`);
+        const { data, error } = await supabase
           .from('platform_config')
           .update({ value: record.value, category: record.category, description: record.description })
-          .eq('key', record.key);
+          .eq('key', record.key)
+          .select('key, value');
 
         if (error) {
           console.error(`Could not update ${record.key}:`, error.message);
           throw new Error(`Failed to update ${record.key}: ${error.message}`);
+        }
+
+        if (!data || data.length === 0) {
+          console.warn(`No rows updated for ${record.key} - might be RLS issue`);
+        } else {
+          console.log(`Updated ${record.key}:`, data);
         }
       }
 
