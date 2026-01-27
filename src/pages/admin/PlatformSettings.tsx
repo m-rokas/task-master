@@ -27,6 +27,7 @@ const defaultSettings = {
   // General
   site_name: 'TaskMaster',
   site_description: 'Professional Task Management Platform',
+  site_url: '',
   support_email: 'support@taskmaster.com',
 
   // Trial
@@ -125,6 +126,7 @@ export default function PlatformSettings() {
     const descriptions: Record<string, string> = {
       site_name: 'The name of your platform',
       site_description: 'Platform description for SEO',
+      site_url: 'The main URL of your platform',
       support_email: 'Email for support inquiries',
       trial_days: 'Number of days for free trial',
       trial_enabled: 'Enable/disable free trial for new users',
@@ -237,6 +239,21 @@ export default function PlatformSettings() {
                       rows={3}
                       className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-400 mb-1">
+                      Site URL
+                    </label>
+                    <input
+                      type="url"
+                      value={settings.site_url}
+                      onChange={(e) => updateSetting('site_url', e.target.value)}
+                      placeholder="https://yourdomain.com"
+                      className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                    <p className="text-xs text-zinc-500 mt-1">
+                      The main URL of your platform (used for links in emails, etc.)
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-zinc-400 mb-1">

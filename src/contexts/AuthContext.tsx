@@ -105,8 +105,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setSession(session);
           setUser(session?.user ?? null);
           if (session?.user) {
-            // Don't await - let profile load in background
-            fetchProfile(session.user.id);
+            // Wait for profile to load before setting loading to false
+            await fetchProfile(session.user.id);
           }
           setLoading(false);
         }
