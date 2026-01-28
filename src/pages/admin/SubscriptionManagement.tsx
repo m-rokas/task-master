@@ -455,7 +455,7 @@ export default function SubscriptionManagement() {
       </div>
 
       {/* Table */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-visible">
         <table className="w-full">
           <thead>
             <tr className="border-b border-zinc-800">
