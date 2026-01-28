@@ -6,6 +6,10 @@ import {
   CheckSquare,
   FolderKanban,
   Loader2,
+  Clock,
+  AlertTriangle,
+  CreditCard,
+  CalendarClock,
 } from 'lucide-react';
 
 interface Stats {
@@ -18,8 +22,28 @@ interface Stats {
   subscriptionStats: { status: string; count: number }[];
 }
 
+interface ExpiringSubscription {
+  id: string;
+  user_id: string;
+  user_name: string;
+  plan_name: string;
+  status: string;
+  current_period_end: string;
+  days_left: number;
+  has_payment_method: boolean;
+}
+
+interface ExpirationStats {
+  expiringIn3Days: ExpiringSubscription[];
+  expiringIn7Days: ExpiringSubscription[];
+  activeTrials: ExpiringSubscription[];
+  expiredNoPayment: number;
+  autoRenewReady: number;
+}
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
+  const [expirationStats, setExpirationStats] = useState<ExpirationStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -104,6 +128,57 @@ export default function AdminDashboard() {
         // Count free users (users without any subscription)
         // Ensure we don't go negative if totalUsers is 0 due to query issues
         subCounts['free'] = Math.max(0, (totalUsers || 0) - usersWithSubs.size);
+
+        // Fetch expiration stats - subscriptions expiring soon
+        const now = new Date();
+        const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+        const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+        const { data: expiringSubscriptions } = await supabase
+          .from('subscriptions')
+          .select(`
+            id,
+            user_id,
+            status,
+            current_period_end,
+            stripe_customer_id,
+            profiles!inner(full_name),
+            plans!inner(name, display_name)
+          `)
+          .in('status', ['active', 'trialing'])
+          .not('current_period_end', 'is', null)
+          .lte('current_period_end', sevenDaysFromNow.toISOString())
+          .gte('current_period_end', now.toISOString())
+          .order('current_period_end', { ascending: true });
+
+        const processedExpiring: ExpiringSubscription[] = (expiringSubscriptions || []).map((sub: any) => {
+          const endDate = new Date(sub.current_period_end);
+          const daysLeft = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          return {
+            id: sub.id,
+            user_id: sub.user_id,
+            user_name: sub.profiles?.full_name || 'Unknown User',
+            plan_name: sub.plans?.display_name || sub.plans?.name || 'Unknown',
+            status: sub.status,
+            current_period_end: sub.current_period_end,
+            days_left: daysLeft,
+            has_payment_method: !!sub.stripe_customer_id,
+          };
+        });
+
+        const expiringIn3Days = processedExpiring.filter(s => s.days_left <= 3);
+        const expiringIn7Days = processedExpiring.filter(s => s.days_left > 3 && s.days_left <= 7);
+        const activeTrials = processedExpiring.filter(s => s.status === 'trialing');
+        const expiredNoPayment = processedExpiring.filter(s => !s.has_payment_method).length;
+        const autoRenewReady = processedExpiring.filter(s => s.has_payment_method && s.status === 'active').length;
+
+        setExpirationStats({
+          expiringIn3Days,
+          expiringIn7Days,
+          activeTrials,
+          expiredNoPayment,
+          autoRenewReady,
+        });
 
         setStats({
           totalUsers: totalUsers || 0,
@@ -273,6 +348,151 @@ export default function AdminDashboard() {
           })}
         </div>
       </div>
+
+      {/* Expiration Overview */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Expiring Soon Summary */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <CalendarClock className="h-5 w-5 text-orange-400" />
+            <h3 className="text-lg font-semibold text-white">Expiration Overview</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-red-500/10 rounded-lg p-4">
+              <div className="flex items-center gap-2 text-red-400 mb-1">
+                <AlertTriangle className="h-4 w-4" />
+                <span className="text-sm">Expiring in 3 Days</span>
+              </div>
+              <p className="text-2xl font-bold text-white">
+                {expirationStats?.expiringIn3Days.length || 0}
+              </p>
+            </div>
+            <div className="bg-orange-500/10 rounded-lg p-4">
+              <div className="flex items-center gap-2 text-orange-400 mb-1">
+                <Clock className="h-4 w-4" />
+                <span className="text-sm">Expiring in 7 Days</span>
+              </div>
+              <p className="text-2xl font-bold text-white">
+                {expirationStats?.expiringIn7Days.length || 0}
+              </p>
+            </div>
+            <div className="bg-blue-500/10 rounded-lg p-4">
+              <div className="flex items-center gap-2 text-blue-400 mb-1">
+                <Clock className="h-4 w-4" />
+                <span className="text-sm">Active Trials</span>
+              </div>
+              <p className="text-2xl font-bold text-white">
+                {expirationStats?.activeTrials.length || 0}
+              </p>
+            </div>
+            <div className="bg-green-500/10 rounded-lg p-4">
+              <div className="flex items-center gap-2 text-green-400 mb-1">
+                <CreditCard className="h-4 w-4" />
+                <span className="text-sm">Auto-Renew Ready</span>
+              </div>
+              <p className="text-2xl font-bold text-white">
+                {expirationStats?.autoRenewReady || 0}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Subscriptions Expiring Soon List */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <AlertTriangle className="h-5 w-5 text-yellow-400" />
+            <h3 className="text-lg font-semibold text-white">Expiring Soon</h3>
+          </div>
+          <div className="space-y-3 max-h-64 overflow-y-auto">
+            {expirationStats?.expiringIn3Days.length === 0 &&
+             expirationStats?.expiringIn7Days.length === 0 ? (
+              <p className="text-zinc-500 text-sm">No subscriptions expiring soon</p>
+            ) : (
+              <>
+                {expirationStats?.expiringIn3Days.map((sub) => (
+                  <div
+                    key={sub.id}
+                    className="flex items-center justify-between p-3 bg-red-500/5 border border-red-500/20 rounded-lg"
+                  >
+                    <div>
+                      <p className="text-white font-medium text-sm">{sub.user_name}</p>
+                      <p className="text-zinc-400 text-xs">
+                        {sub.plan_name} • {sub.status === 'trialing' ? 'Trial' : 'Paid'}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-red-400 font-medium text-sm">
+                        {sub.days_left === 0 ? 'Today' : sub.days_left === 1 ? 'Tomorrow' : `${sub.days_left} days`}
+                      </p>
+                      <p className="text-xs text-zinc-500">
+                        {sub.has_payment_method ? '💳 Card on file' : '⚠️ No card'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                {expirationStats?.expiringIn7Days.map((sub) => (
+                  <div
+                    key={sub.id}
+                    className="flex items-center justify-between p-3 bg-orange-500/5 border border-orange-500/20 rounded-lg"
+                  >
+                    <div>
+                      <p className="text-white font-medium text-sm">{sub.user_name}</p>
+                      <p className="text-zinc-400 text-xs">
+                        {sub.plan_name} • {sub.status === 'trialing' ? 'Trial' : 'Paid'}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-orange-400 font-medium text-sm">{sub.days_left} days</p>
+                      <p className="text-xs text-zinc-500">
+                        {sub.has_payment_method ? '💳 Card on file' : '⚠️ No card'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Active Trials Detail */}
+      {expirationStats && expirationStats.activeTrials.length > 0 && (
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Clock className="h-5 w-5 text-blue-400" />
+            <h3 className="text-lg font-semibold text-white">Active Trials</h3>
+            <span className="ml-auto text-sm text-zinc-400">
+              {expirationStats.activeTrials.length} active
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {expirationStats.activeTrials.map((trial) => (
+              <div
+                key={trial.id}
+                className="flex items-center justify-between p-3 bg-blue-500/5 border border-blue-500/20 rounded-lg"
+              >
+                <div>
+                  <p className="text-white font-medium text-sm">{trial.user_name}</p>
+                  <p className="text-zinc-400 text-xs">{trial.plan_name}</p>
+                </div>
+                <div className="text-right">
+                  <p className={`font-medium text-sm ${
+                    trial.days_left <= 1 ? 'text-red-400' :
+                    trial.days_left <= 3 ? 'text-orange-400' : 'text-blue-400'
+                  }`}>
+                    {trial.days_left === 0 ? 'Expires today' :
+                     trial.days_left === 1 ? '1 day left' :
+                     `${trial.days_left} days left`}
+                  </p>
+                  <p className="text-xs text-zinc-500">
+                    {trial.has_payment_method ? '💳 Will charge' : '➡️ Will downgrade'}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
