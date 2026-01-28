@@ -1,5 +1,6 @@
 // Database types for TaskMaster
 // Generated based on Supabase schema
+// Last updated: 2025-01-28
 
 export type Json =
   | string
@@ -9,6 +10,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
+// Enum types
 export type UserRole = 'user' | 'admin';
 export type ProjectRole = 'owner' | 'admin' | 'member' | 'viewer';
 export type TaskStatus = 'todo' | 'in_progress' | 'review' | 'done';
@@ -24,6 +26,8 @@ export type NotificationType =
   | 'task_overdue'
   | 'project_invite'
   | 'system';
+export type AuditAction = 'create' | 'update' | 'delete';
+export type PlatformConfigCategory = 'general' | 'billing' | 'features' | 'notifications' | 'security';
 
 export interface Database {
   public: {
@@ -37,6 +41,7 @@ export interface Database {
           plan_id: string | null;
           language: 'en' | 'lt';
           is_active: boolean;
+          stripe_customer_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -48,6 +53,7 @@ export interface Database {
           plan_id?: string | null;
           language?: 'en' | 'lt';
           is_active?: boolean;
+          stripe_customer_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -59,6 +65,7 @@ export interface Database {
           plan_id?: string | null;
           language?: 'en' | 'lt';
           is_active?: boolean;
+          stripe_customer_id?: string | null;
           updated_at?: string;
         };
       };
@@ -74,6 +81,7 @@ export interface Database {
           price_yearly: number;
           stripe_price_monthly: string | null;
           stripe_price_yearly: string | null;
+          stripe_product_id: string | null;
           is_active: boolean;
           created_at: string;
         };
@@ -88,6 +96,7 @@ export interface Database {
           price_yearly?: number;
           stripe_price_monthly?: string | null;
           stripe_price_yearly?: string | null;
+          stripe_product_id?: string | null;
           is_active?: boolean;
           created_at?: string;
         };
@@ -101,6 +110,7 @@ export interface Database {
           price_yearly?: number;
           stripe_price_monthly?: string | null;
           stripe_price_yearly?: string | null;
+          stripe_product_id?: string | null;
           is_active?: boolean;
         };
       };
@@ -347,6 +357,7 @@ export interface Database {
           current_period_start: string;
           current_period_end: string | null;
           cancel_at_period_end: boolean;
+          canceled_at: string | null;
           stripe_customer_id: string | null;
           stripe_subscription_id: string | null;
           created_at: string;
@@ -360,6 +371,7 @@ export interface Database {
           current_period_start?: string;
           current_period_end?: string | null;
           cancel_at_period_end?: boolean;
+          canceled_at?: string | null;
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
           created_at?: string;
@@ -370,6 +382,7 @@ export interface Database {
           status?: SubscriptionStatus;
           current_period_end?: string | null;
           cancel_at_period_end?: boolean;
+          canceled_at?: string | null;
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
           updated_at?: string;
@@ -434,7 +447,7 @@ export interface Database {
         Row: {
           id: string;
           user_id: string | null;
-          action: 'create' | 'update' | 'delete';
+          action: AuditAction;
           entity_type: string;
           entity_id: string;
           old_values: Json | null;
@@ -445,6 +458,33 @@ export interface Database {
         };
         Insert: never;
         Update: never;
+      };
+      platform_config: {
+        Row: {
+          id: string;
+          key: string;
+          value: string;
+          category: PlatformConfigCategory;
+          description: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          key: string;
+          value: string;
+          category?: PlatformConfigCategory;
+          description?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          key?: string;
+          value?: string;
+          category?: PlatformConfigCategory;
+          description?: string | null;
+          updated_at?: string;
+        };
       };
     };
     Functions: {
@@ -479,6 +519,22 @@ export interface Database {
         Args: { p_notification_ids: string[] };
         Returns: void;
       };
+      is_admin: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
+      expire_trials: {
+        Args: Record<string, never>;
+        Returns: number;
+      };
+      handle_new_user: {
+        Args: Record<string, never>;
+        Returns: unknown;
+      };
+      handle_new_project: {
+        Args: Record<string, never>;
+        Returns: unknown;
+      };
     };
     Views: {
       [_ in never]: never;
@@ -492,6 +548,8 @@ export interface Database {
       subscription_status: SubscriptionStatus;
       payment_status: PaymentStatus;
       notification_type: NotificationType;
+      audit_action: AuditAction;
+      platform_config_category: PlatformConfigCategory;
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -517,22 +575,68 @@ export type TaskAssignee = Tables<'task_assignees'>;
 export type TaskComment = Tables<'task_comments'>;
 export type TaskAttachment = Tables<'task_attachments'>;
 export type TaskLabel = Tables<'task_labels'>;
+export type TaskLabelAssignment = Tables<'task_label_assignments'>;
 export type TimeEntry = Tables<'time_entries'>;
 export type Subscription = Tables<'subscriptions'>;
 export type Payment = Tables<'payments'>;
 export type Notification = Tables<'tm_notifications'>;
+export type AuditLog = Tables<'audit_logs'>;
+export type PlatformConfig = Tables<'platform_config'>;
 
 // Extended types with relations
 export type TaskWithRelations = Task & {
   assignees?: (TaskAssignee & { profiles: Profile })[];
   comments?: (TaskComment & { profiles: Profile })[];
   attachments?: TaskAttachment[];
-  labels?: (TaskLabel)[];
+  labels?: TaskLabel[];
   project?: Project;
+  subtasks?: Task[];
+  parent_task?: Task;
 };
 
 export type ProjectWithRelations = Project & {
   members?: (ProjectMember & { profiles: Profile })[];
   tasks?: Task[];
   labels?: TaskLabel[];
+  owner?: Profile;
 };
+
+export type ProfileWithRelations = Profile & {
+  plans?: Plan;
+  subscriptions?: Subscription[];
+};
+
+export type SubscriptionWithRelations = Subscription & {
+  plans?: Plan;
+  profiles?: Profile;
+};
+
+// Platform settings interface (parsed from platform_config)
+export interface PlatformSettings {
+  site_name: string;
+  site_description: string;
+  site_url: string;
+  support_email: string;
+  trial_days: number;
+  trial_enabled: boolean;
+  signup_enabled: boolean;
+  maintenance_mode: boolean;
+  email_notifications_enabled: boolean;
+  welcome_email_enabled: boolean;
+  task_reminder_enabled: boolean;
+  max_login_attempts: number;
+  session_timeout_hours: number;
+}
+
+// Plan features interface (parsed from plans.features JSON)
+export interface PlanFeatures {
+  time_tracking?: boolean;
+  file_attachments?: boolean;
+  team_collaboration?: boolean;
+  custom_labels?: boolean;
+  recurring_tasks?: boolean;
+  api_access?: boolean;
+  advanced_analytics?: boolean;
+  priority_support?: boolean;
+  [key: string]: boolean | undefined;
+}
