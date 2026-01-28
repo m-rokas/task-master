@@ -1,5 +1,5 @@
-// Vercel Cron Job: Trial Reminders
-// Runs daily to send trial expiration reminders
+// Vercel Cron Job: Subscription Reminders
+// Runs daily to send expiration reminders for trials AND paid plans
 
 export const config = {
   runtime: 'edge',
@@ -18,7 +18,7 @@ export default async function handler() {
   }
 
   try {
-    const response = await fetch(`${supabaseUrl}/functions/v1/trial-reminders`, {
+    const response = await fetch(`${supabaseUrl}/functions/v1/subscription-reminders`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
