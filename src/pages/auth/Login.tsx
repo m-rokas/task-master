@@ -61,14 +61,14 @@ export default function Login() {
         />
         {/* Dark Overlay with Brand Info */}
         <div className="absolute inset-0 bg-black/60 flex flex-col justify-between p-12">
-          <div className="flex items-center gap-3 text-white">
+          <Link to="/" className="flex items-center gap-3 text-white hover:opacity-80 transition-opacity">
             <div className="size-8 text-primary">
               <svg fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                 <path d="M6 6H42L36 24L42 42H6L12 24L6 6Z" />
               </svg>
             </div>
             <h2 className="text-2xl font-bold tracking-tight">{settings.site_name}</h2>
-          </div>
+          </Link>
           <div className="max-w-md">
             <h1 className="text-white text-5xl font-bold leading-tight mb-6">
               Master your workflow, achieve more every day.
@@ -87,14 +87,14 @@ export default function Login() {
       <div className="flex-1 flex flex-col items-center justify-center p-8 bg-background-dark">
         <div className="w-full max-w-[440px] flex flex-col">
           {/* Branding for mobile */}
-          <div className="flex items-center gap-2 text-white mb-10 md:hidden">
+          <Link to="/" className="flex items-center gap-2 text-white mb-10 md:hidden hover:opacity-80 transition-opacity">
             <div className="size-6 text-primary">
               <svg fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                 <path d="M6 6H42L36 24L42 42H6L12 24L6 6Z" />
               </svg>
             </div>
             <h2 className="text-xl font-bold">{settings.site_name}</h2>
-          </div>
+          </Link>
 
           {/* Headline */}
           <div className="mb-8">

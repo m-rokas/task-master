@@ -74,7 +74,7 @@ export function AdminLayout() {
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-zinc-800">
           {!collapsed && (
-            <div className="flex items-center gap-2">
+            <Link to="/admin" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
                 <Shield className="h-5 w-5 text-white" />
               </div>
@@ -82,14 +82,14 @@ export function AdminLayout() {
                 <span className="font-bold text-white block text-sm">{getSiteName()}</span>
                 <span className="text-xs text-red-400">Admin Panel</span>
               </div>
-            </div>
+            </Link>
           )}
           {collapsed && (
-            <div className="mx-auto">
+            <Link to="/admin" className="mx-auto hover:opacity-80 transition-opacity">
               <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
                 <Shield className="h-5 w-5 text-white" />
               </div>
-            </div>
+            </Link>
           )}
           {/* Close button for mobile */}
           <button

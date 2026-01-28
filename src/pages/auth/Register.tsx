@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlatform } from '@/contexts/PlatformContext';
 import { Loader2, Eye, EyeOff, Rocket, Users, CheckCircle } from 'lucide-react';
@@ -17,6 +17,8 @@ export default function Register() {
   const { user, signUp, signInWithGoogle } = useAuth();
   const { settings } = usePlatform();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const selectedPlan = searchParams.get('plan') || 'free';
 
   // Redirect if already logged in
   useEffect(() => {
@@ -41,7 +43,7 @@ export default function Register() {
 
     setLoading(true);
 
-    const { error } = await signUp(email, password, fullName);
+    const { error } = await signUp(email, password, fullName, selectedPlan);
 
     if (error) {
       setError(error.message);
@@ -94,14 +96,14 @@ export default function Register() {
         }}
       >
         {/* Logo */}
-        <div className="absolute top-10 left-10 flex items-center gap-2">
+        <Link to="/" className="absolute top-10 left-10 flex items-center gap-2 hover:opacity-80 transition-opacity">
           <div className="bg-primary p-2 rounded-lg">
             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
           <span className="text-2xl font-black tracking-tight text-white">{settings.site_name}</span>
-        </div>
+        </Link>
 
         <div className="max-w-md w-full space-y-8 z-10">
           <div className="space-y-4">
@@ -143,14 +145,14 @@ export default function Register() {
       <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 sm:p-12 bg-background-dark">
         <div className="w-full max-w-[480px] space-y-8">
           {/* Mobile Logo */}
-          <div className="flex items-center gap-2 lg:hidden mb-6">
+          <Link to="/" className="flex items-center gap-2 lg:hidden mb-6 hover:opacity-80 transition-opacity">
             <div className="bg-primary p-2 rounded-lg">
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <span className="text-xl font-black tracking-tight text-white">{settings.site_name}</span>
-          </div>
+          </Link>
 
           {/* Page Heading */}
           <div className="flex flex-col gap-3">

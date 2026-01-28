@@ -2,6 +2,7 @@ import { CheckCircle, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { usePlatform } from '@/contexts/PlatformContext';
 
 interface Plan {
   id: string;
@@ -13,7 +14,7 @@ interface Plan {
   is_active: boolean;
 }
 
-function PricingCard({ plan }: { plan: Plan }) {
+function PricingCard({ plan, trialEnabled }: { plan: Plan; trialEnabled: boolean }) {
   const baseCardClass =
     'flex flex-1 flex-col gap-6 rounded-xl p-8 transition-colors';
   const cardClass = plan.is_featured
@@ -46,7 +47,13 @@ function PricingCard({ plan }: { plan: Plan }) {
         </p>
       </div>
       <Link to={`/register?plan=${plan.name}`} className={buttonClass}>
-        <span>{plan.name === 'free' ? 'Get Started' : 'Start Trial'}</span>
+        <span>
+          {plan.name === 'free'
+            ? 'Get Started'
+            : trialEnabled
+            ? 'Start Free Trial'
+            : 'Subscribe Now'}
+        </span>
       </Link>
       <div className="flex flex-col gap-4">
         {plan.features_list?.map((feature, index) => (
@@ -64,6 +71,7 @@ function PricingCard({ plan }: { plan: Plan }) {
 }
 
 export function Pricing() {
+  const { settings } = usePlatform();
   const { data: plans, isLoading } = useQuery({
     queryKey: ['public-plans'],
     queryFn: async () => {
@@ -108,7 +116,7 @@ export function Pricing() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10 px-4 py-3">
               {plans?.map((plan) => (
-                <PricingCard key={plan.id} plan={plan} />
+                <PricingCard key={plan.id} plan={plan} trialEnabled={settings.trial_enabled} />
               ))}
             </div>
           )}

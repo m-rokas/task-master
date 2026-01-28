@@ -13,7 +13,7 @@ interface AuthContextType {
   hasFeature: (feature: string) => boolean;
   isTrialing: boolean;
   trialEndsAt: Date | null;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: AuthError | null }>;
+  signUp: (email: string, password: string, fullName: string, selectedPlan?: string) => Promise<{ error: AuthError | null }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signInWithGoogle: () => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
@@ -144,13 +144,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (email: string, password: string, fullName: string, selectedPlan?: string) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           full_name: fullName,
+          selected_plan: selectedPlan || 'free',
         },
       },
     });
