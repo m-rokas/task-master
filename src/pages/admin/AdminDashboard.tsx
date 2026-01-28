@@ -131,7 +131,6 @@ export default function AdminDashboard() {
 
         // Fetch expiration stats - subscriptions expiring soon
         const now = new Date();
-        const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
         const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
         const { data: expiringSubscriptions } = await supabase
