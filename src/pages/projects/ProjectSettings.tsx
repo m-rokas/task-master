@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,6 +15,7 @@ import {
   Eye,
   Edit3,
   MoreVertical,
+  Shield,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -41,10 +42,19 @@ const roleConfig: Record<MemberRole, { label: string; icon: typeof Crown; color:
 
 export default function ProjectSettings() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<'general' | 'members'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'members' | 'permissions'>('general');
+
+  // Handle tab from URL query param
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'members' || tabParam === 'permissions' || tabParam === 'general') {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<MemberRole>('member');
@@ -85,6 +95,38 @@ export default function ProjectSettings() {
       return data;
     },
     enabled: !!id && !!user,
+  });
+
+  // Fetch role permissions (only for owners)
+  const { data: rolePermissions, isLoading: permissionsLoading } = useQuery({
+    queryKey: ['project-role-permissions', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('project_role_permissions')
+        .select('*')
+        .eq('project_id', id)
+        .in('role', ['admin', 'member', 'viewer']);
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  // Update role permission
+  const updateRolePermission = useMutation({
+    mutationFn: async ({ role, field, value }: { role: string; field: string; value: boolean }) => {
+      const { error } = await supabase
+        .from('project_role_permissions')
+        .update({ [field]: value, updated_at: new Date().toISOString() })
+        .eq('project_id', id)
+        .eq('role', role);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project-role-permissions', id] });
+    },
   });
 
   // Fetch project members
@@ -296,6 +338,22 @@ export default function ProjectSettings() {
             Members ({members?.length || 0})
           </div>
         </button>
+        {isOwner && (
+          <button
+            onClick={() => setActiveTab('permissions')}
+            className={cn(
+              'pb-3 px-1 text-sm font-medium transition-colors border-b-2',
+              activeTab === 'permissions'
+                ? 'text-white border-primary'
+                : 'text-zinc-400 hover:text-white border-transparent'
+            )}
+          >
+            <div className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Permissions
+            </div>
+          </button>
+        )}
       </div>
 
       {/* General Tab */}
@@ -418,7 +476,60 @@ export default function ProjectSettings() {
               </div>
             ) : (
               <div className="divide-y divide-zinc-800">
-                {members?.map((member) => {
+                {/* Owner Section */}
+                {members?.filter(m => m.role === 'owner').map((member) => {
+                  const role = roleConfig[member.role as MemberRole] || roleConfig.member;
+                  const RoleIcon = role.icon;
+                  const isCurrentUser = member.user_id === user?.id;
+
+                  return (
+                    <div key={member.id} className="p-4 bg-yellow-500/5 border-b border-yellow-500/20">
+                      <div className="text-xs font-semibold text-yellow-500 uppercase tracking-wide mb-3">
+                        Project Owner
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-yellow-500/20 border-2 border-yellow-500/50 flex items-center justify-center overflow-hidden">
+                            {member.profiles?.avatar_url ? (
+                              <img
+                                src={member.profiles.avatar_url}
+                                alt=""
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-yellow-500 font-medium">
+                                {member.profiles?.full_name?.[0]?.toUpperCase() || '?'}
+                              </span>
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-white font-medium">
+                              {member.profiles?.full_name || 'Unknown'}
+                              {isCurrentUser && <span className="text-zinc-500 text-sm ml-2">(You)</span>}
+                            </p>
+                            <p className="text-sm text-zinc-500">Full project control</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-sm text-yellow-500">
+                          <RoleIcon className="h-4 w-4" />
+                          {role.label}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Team Members Section Header */}
+                {members && members.filter(m => m.role !== 'owner').length > 0 && (
+                  <div className="px-4 py-2 bg-zinc-800/50">
+                    <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wide">
+                      Team Members ({members.filter(m => m.role !== 'owner').length})
+                    </span>
+                  </div>
+                )}
+
+                {/* Other Members */}
+                {members?.filter(m => m.role !== 'owner').map((member) => {
                   const role = roleConfig[member.role as MemberRole] || roleConfig.member;
                   const RoleIcon = role.icon;
                   const isCurrentUser = member.user_id === user?.id;
@@ -513,7 +624,7 @@ export default function ProjectSettings() {
 
           {/* Role Legend */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-            <h3 className="text-sm font-medium text-zinc-400 mb-3">Role Permissions</h3>
+            <h3 className="text-sm font-medium text-zinc-400 mb-3">Role Overview</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {Object.entries(roleConfig).map(([key, config]) => {
                 const Icon = config.icon;
@@ -528,6 +639,83 @@ export default function ProjectSettings() {
                 );
               })}
             </div>
+            {isOwner && (
+              <p className="text-xs text-zinc-500 mt-3">
+                Go to <button onClick={() => setActiveTab('permissions')} className="text-primary hover:underline">Permissions</button> tab to customize what each role can do.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Permissions Tab - Only for Owner */}
+      {activeTab === 'permissions' && isOwner && (
+        <div className="space-y-6">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+            <h2 className="text-lg font-semibold text-white mb-2">Role Permissions</h2>
+            <p className="text-sm text-zinc-400 mb-6">
+              Customize what each role can do in this project. Owner always has full permissions.
+            </p>
+
+            {permissionsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : (
+              <div className="space-y-8">
+                {['admin', 'member', 'viewer'].map((role) => {
+                  const roleData = rolePermissions?.find((p) => p.role === role);
+                  const config = roleConfig[role as MemberRole];
+                  const Icon = config?.icon || Settings;
+
+                  const permissionFields = [
+                    { key: 'can_manage_tasks', label: 'Manage Tasks', description: 'Create, edit, delete tasks' },
+                    { key: 'can_assign_tasks', label: 'Assign Tasks', description: 'Assign tasks to members' },
+                    { key: 'can_comment', label: 'Comment', description: 'Add comments to tasks' },
+                    { key: 'can_manage_labels', label: 'Manage Labels', description: 'Create and edit labels' },
+                    { key: 'can_upload_files', label: 'Upload Files', description: 'Attach files to tasks' },
+                    { key: 'can_invite_members', label: 'Invite Members', description: 'Add new members' },
+                    { key: 'can_remove_members', label: 'Remove Members', description: 'Remove existing members' },
+                    { key: 'can_change_roles', label: 'Change Roles', description: 'Change member roles' },
+                    { key: 'can_edit_project', label: 'Edit Project', description: 'Edit project details' },
+                    { key: 'can_view_time_entries', label: 'View Time Entries', description: 'See time tracking data' },
+                  ];
+
+                  return (
+                    <div key={role} className="border-b border-zinc-800 pb-6 last:border-0 last:pb-0">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Icon className={cn('h-5 w-5', config?.color)} />
+                        <h3 className={cn('text-lg font-semibold', config?.color)}>{config?.label}</h3>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {permissionFields.map((field) => (
+                          <label
+                            key={field.key}
+                            className="flex items-start gap-3 p-3 bg-zinc-800/50 rounded-lg cursor-pointer hover:bg-zinc-800"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={roleData?.[field.key as keyof typeof roleData] as boolean || false}
+                              onChange={(e) => updateRolePermission.mutate({
+                                role,
+                                field: field.key,
+                                value: e.target.checked,
+                              })}
+                              className="mt-1 h-4 w-4 rounded border-zinc-600 bg-zinc-700 text-primary focus:ring-primary focus:ring-offset-zinc-900"
+                            />
+                            <div>
+                              <p className="text-sm font-medium text-white">{field.label}</p>
+                              <p className="text-xs text-zinc-500">{field.description}</p>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       )}

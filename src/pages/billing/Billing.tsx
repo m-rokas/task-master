@@ -23,7 +23,46 @@ interface Plan {
   price_yearly: number;
   project_limit: number | null;
   task_limit: number | null;
+  features: Record<string, boolean> | null;
   features_list?: string[];
+}
+
+// Generate dynamic features from plan limits
+function generatePlanFeatures(plan: Plan): string[] {
+  const features: string[] = [];
+
+  // Project limit
+  if (plan.project_limit === null) {
+    features.push('Unlimited projects');
+  } else {
+    features.push(`Up to ${plan.project_limit} projects`);
+  }
+
+  // Task limit
+  if (plan.task_limit === null) {
+    features.push('Unlimited tasks');
+  } else {
+    features.push(`Up to ${plan.task_limit} tasks`);
+  }
+
+  // Feature flags
+  if (plan.features?.team_collaboration) {
+    features.push('Team collaboration');
+  }
+  if (plan.features?.custom_labels) {
+    features.push('Custom labels & tags');
+  }
+  if (plan.features?.file_attachments) {
+    features.push('File attachments');
+  }
+  if (plan.features?.advanced_time_tracking) {
+    features.push('Advanced time tracking');
+  }
+  if (plan.features?.api_access) {
+    features.push('API access');
+  }
+
+  return features;
 }
 
 export default function Billing() {
@@ -39,7 +78,7 @@ export default function Billing() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('plans')
-        .select('*')
+        .select('id, name, display_name, price_monthly, price_yearly, project_limit, task_limit, features, features_list, is_active')
         .eq('is_active', true)
         .order('price_monthly');
       if (error) throw error;
@@ -432,11 +471,6 @@ export default function Billing() {
     business: Crown,
   };
 
-  const defaultFeatures: Record<string, string[]> = {
-    free: ['Up to 1 project', 'Up to 50 tasks', 'Basic time tracking', 'Email support'],
-    pro: ['Up to 20 projects', 'Up to 500 tasks', 'Team collaboration', 'Custom labels', 'File attachments', 'Priority support'],
-    business: ['Unlimited projects', 'Unlimited tasks', 'All Pro features', 'API access', 'Advanced analytics', 'Dedicated support'],
-  };
 
   // Determine if this is the current plan
   // If no plan is set, user is on free plan
@@ -604,7 +638,7 @@ export default function Billing() {
           const PlanIcon = planIcons[plan.name] || Package;
           const price = billingCycle === 'yearly' ? plan.price_yearly : plan.price_monthly;
           const isCurrent = isCurrentPlan(plan.id);
-          const features = plan.features_list || defaultFeatures[plan.name] || [];
+          const features = generatePlanFeatures(plan);
 
           return (
             <div

@@ -28,6 +28,7 @@ import {
   Loader2,
   Calendar,
   X,
+  Crown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { TaskStatus, TaskWithRelations } from '@/types/database';
@@ -168,12 +169,61 @@ export default function ProjectDetail() {
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {!project.is_personal && (
-            <button className="flex items-center gap-2 px-3 py-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors">
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Members</span>
-            </button>
+        <div className="flex items-center gap-3">
+          {/* Team Members Preview */}
+          {project.project_members && project.project_members.length > 0 && (
+            <Link
+              to={`/projects/${id}/settings?tab=members`}
+              className="flex items-center gap-2 px-3 py-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+            >
+              <div className="flex items-center">
+                {/* Show owner first with crown */}
+                {project.project_members
+                  .filter((m: any) => m.role === 'owner')
+                  .slice(0, 1)
+                  .map((member: any) => (
+                    <div
+                      key={member.id}
+                      className="relative w-8 h-8 rounded-full bg-yellow-500/20 border-2 border-yellow-500/50 flex items-center justify-center overflow-hidden"
+                      title={`${member.profiles?.full_name || 'Owner'} (Owner)`}
+                    >
+                      {member.profiles?.avatar_url ? (
+                        <img src={member.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-yellow-500 text-xs font-medium">
+                          {member.profiles?.full_name?.[0]?.toUpperCase() || 'O'}
+                        </span>
+                      )}
+                      <Crown className="absolute -bottom-0.5 -right-0.5 h-3 w-3 text-yellow-500 bg-zinc-900 rounded-full p-0.5" />
+                    </div>
+                  ))}
+                {/* Other members */}
+                <div className="flex -space-x-2 ml-1">
+                  {project.project_members
+                    .filter((m: any) => m.role !== 'owner')
+                    .slice(0, 3)
+                    .map((member: any) => (
+                      <div
+                        key={member.id}
+                        className="w-7 h-7 rounded-full bg-zinc-700 border-2 border-zinc-800 flex items-center justify-center overflow-hidden"
+                        title={member.profiles?.full_name || 'Member'}
+                      >
+                        {member.profiles?.avatar_url ? (
+                          <img src={member.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-white text-xs font-medium">
+                            {member.profiles?.full_name?.[0]?.toUpperCase() || '?'}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                </div>
+                {project.project_members.length > 4 && (
+                  <span className="ml-1 text-xs text-zinc-500">+{project.project_members.length - 4}</span>
+                )}
+              </div>
+              <Users className="h-4 w-4 ml-1" />
+            </Link>
           )}
           <Link
             to={`/projects/${id}/settings`}

@@ -274,84 +274,178 @@ export default function Team() {
         </div>
       </div>
 
-      {/* Team Members Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredMembers?.map((member) => (
-          <div
-            key={member.user_id}
-            className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 hover:border-zinc-700 transition-colors"
-          >
-            <div className="flex items-start gap-4">
-              <div className="h-12 w-12 rounded-full bg-zinc-700 flex items-center justify-center overflow-hidden flex-shrink-0">
-                {member.profiles?.avatar_url ? (
-                  <img
-                    src={member.profiles.avatar_url}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <User className="h-6 w-6 text-zinc-400" />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-white font-medium truncate">
-                  {member.profiles?.full_name || 'Unnamed User'}
-                </h3>
-                <p className="text-xs text-zinc-500 mt-0.5">
-                  {member.projects.length} project{member.projects.length !== 1 ? 's' : ''}
-                </p>
-              </div>
-              {canManageMember(member) && (
-                <button
-                  onClick={() => setManageUser({
-                    userId: member.user_id,
-                    userName: member.profiles?.full_name || 'Unnamed User',
-                    projects: member.projects,
-                  })}
-                  className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+      {/* Project Owners Section */}
+      {filteredMembers && filteredMembers.filter((m) => m.projects.some((p) => p.role === 'owner')).length > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold text-yellow-500 uppercase tracking-wider flex items-center gap-2">
+            <Crown className="h-4 w-4" />
+            Project Owners
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredMembers
+              .filter((m) => m.projects.some((p) => p.role === 'owner'))
+              .map((member) => (
+                <div
+                  key={member.user_id}
+                  className="bg-yellow-500/5 border border-yellow-500/20 rounded-xl p-5 hover:border-yellow-500/40 transition-colors"
                 >
-                  <MoreVertical className="h-5 w-5" />
-                </button>
-              )}
-            </div>
-
-            {/* Projects */}
-            <div className="mt-4 space-y-2">
-              <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Projects</p>
-              <div className="flex flex-wrap gap-2">
-                {member.projects.slice(0, 4).map((project) => (
-                  <div
-                    key={project.id}
-                    className="flex items-center gap-1.5 px-2 py-1 bg-zinc-800 rounded-lg"
-                  >
-                    <span
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: project.color }}
-                    />
-                    <span className="text-xs text-zinc-300 truncate max-w-[100px]">
-                      {project.name}
-                    </span>
-                    <span className={cn('text-xs px-1.5 py-0.5 rounded', roleColors[project.role])}>
-                      {project.role}
-                    </span>
+                  <div className="flex items-start gap-4">
+                    <div className="relative h-12 w-12 rounded-full bg-yellow-500/20 border-2 border-yellow-500/50 flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {member.profiles?.avatar_url ? (
+                        <img
+                          src={member.profiles.avatar_url}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <User className="h-6 w-6 text-yellow-500" />
+                      )}
+                      <Crown className="absolute -bottom-1 -right-1 h-4 w-4 text-yellow-500 bg-zinc-900 rounded-full p-0.5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-white font-medium truncate">
+                        {member.profiles?.full_name || 'Unnamed User'}
+                        {member.user_id === user?.id && <span className="text-zinc-500 text-sm ml-2">(You)</span>}
+                      </h3>
+                      <p className="text-xs text-yellow-500/70 mt-0.5">
+                        Owner of {member.projects.filter((p) => p.role === 'owner').length} project{member.projects.filter((p) => p.role === 'owner').length !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                    {canManageMember(member) && (
+                      <button
+                        onClick={() => setManageUser({
+                          userId: member.user_id,
+                          userName: member.profiles?.full_name || 'Unnamed User',
+                          projects: member.projects,
+                        })}
+                        className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+                      >
+                        <MoreVertical className="h-5 w-5" />
+                      </button>
+                    )}
                   </div>
-                ))}
-                {member.projects.length > 4 && (
-                  <span className="text-xs text-zinc-500 px-2 py-1">
-                    +{member.projects.length - 4} more
-                  </span>
-                )}
-              </div>
-            </div>
 
-            {/* Joined Date */}
-            <div className="mt-4 pt-4 border-t border-zinc-800 flex items-center gap-2 text-xs text-zinc-500">
-              <Calendar className="h-3.5 w-3.5" />
-              Joined {new Date(member.joined_at).toLocaleDateString()}
-            </div>
+                  {/* Projects */}
+                  <div className="mt-4 space-y-2">
+                    <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Owned Projects</p>
+                    <div className="flex flex-wrap gap-2">
+                      {member.projects.filter((p) => p.role === 'owner').slice(0, 4).map((project) => (
+                        <div
+                          key={project.id}
+                          className="flex items-center gap-1.5 px-2 py-1 bg-yellow-500/10 rounded-lg"
+                        >
+                          <span
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: project.color }}
+                          />
+                          <span className="text-xs text-yellow-200 truncate max-w-[100px]">
+                            {project.name}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Joined Date */}
+                  <div className="mt-4 pt-4 border-t border-yellow-500/20 flex items-center gap-2 text-xs text-zinc-500">
+                    <Calendar className="h-3.5 w-3.5" />
+                    Joined {new Date(member.joined_at).toLocaleDateString()}
+                  </div>
+                </div>
+              ))}
           </div>
-        ))}
-      </div>
+        </div>
+      )}
+
+      {/* Team Members Section */}
+      {filteredMembers && filteredMembers.filter((m) => !m.projects.some((p) => p.role === 'owner')).length > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Team Members
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredMembers
+              .filter((m) => !m.projects.some((p) => p.role === 'owner'))
+              .map((member) => (
+                <div
+                  key={member.user_id}
+                  className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 hover:border-zinc-700 transition-colors"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="h-12 w-12 rounded-full bg-zinc-700 flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {member.profiles?.avatar_url ? (
+                        <img
+                          src={member.profiles.avatar_url}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <User className="h-6 w-6 text-zinc-400" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-white font-medium truncate">
+                        {member.profiles?.full_name || 'Unnamed User'}
+                        {member.user_id === user?.id && <span className="text-zinc-500 text-sm ml-2">(You)</span>}
+                      </h3>
+                      <p className="text-xs text-zinc-500 mt-0.5">
+                        {member.projects.length} project{member.projects.length !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                    {canManageMember(member) && (
+                      <button
+                        onClick={() => setManageUser({
+                          userId: member.user_id,
+                          userName: member.profiles?.full_name || 'Unnamed User',
+                          projects: member.projects,
+                        })}
+                        className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+                      >
+                        <MoreVertical className="h-5 w-5" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Projects */}
+                  <div className="mt-4 space-y-2">
+                    <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Projects</p>
+                    <div className="flex flex-wrap gap-2">
+                      {member.projects.slice(0, 4).map((project) => (
+                        <div
+                          key={project.id}
+                          className="flex items-center gap-1.5 px-2 py-1 bg-zinc-800 rounded-lg"
+                        >
+                          <span
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: project.color }}
+                          />
+                          <span className="text-xs text-zinc-300 truncate max-w-[100px]">
+                            {project.name}
+                          </span>
+                          <span className={cn('text-xs px-1.5 py-0.5 rounded', roleColors[project.role])}>
+                            {project.role}
+                          </span>
+                        </div>
+                      ))}
+                      {member.projects.length > 4 && (
+                        <span className="text-xs text-zinc-500 px-2 py-1">
+                          +{member.projects.length - 4} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Joined Date */}
+                  <div className="mt-4 pt-4 border-t border-zinc-800 flex items-center gap-2 text-xs text-zinc-500">
+                    <Calendar className="h-3.5 w-3.5" />
+                    Joined {new Date(member.joined_at).toLocaleDateString()}
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
 
       {filteredMembers?.length === 0 && (
         <div className="text-center py-12 bg-zinc-900 border border-zinc-800 rounded-xl">

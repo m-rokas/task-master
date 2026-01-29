@@ -9,9 +9,50 @@ interface Plan {
   name: string;
   display_name: string;
   price_monthly: number;
+  project_limit: number | null;
+  task_limit: number | null;
+  features: Record<string, boolean> | null;
   features_list: string[];
   is_featured: boolean;
   is_active: boolean;
+}
+
+// Generate dynamic features from plan limits
+function generatePlanFeatures(plan: Plan): string[] {
+  const features: string[] = [];
+
+  // Project limit
+  if (plan.project_limit === null) {
+    features.push('Unlimited projects');
+  } else {
+    features.push(`Up to ${plan.project_limit} projects`);
+  }
+
+  // Task limit
+  if (plan.task_limit === null) {
+    features.push('Unlimited tasks');
+  } else {
+    features.push(`Up to ${plan.task_limit} tasks`);
+  }
+
+  // Feature flags
+  if (plan.features?.team_collaboration) {
+    features.push('Team collaboration');
+  }
+  if (plan.features?.custom_labels) {
+    features.push('Custom labels & tags');
+  }
+  if (plan.features?.file_attachments) {
+    features.push('File attachments');
+  }
+  if (plan.features?.advanced_time_tracking) {
+    features.push('Advanced time tracking');
+  }
+  if (plan.features?.api_access) {
+    features.push('API access');
+  }
+
+  return features;
 }
 
 function PricingCard({ plan, trialEnabled }: { plan: Plan; trialEnabled: boolean }) {
@@ -56,7 +97,7 @@ function PricingCard({ plan, trialEnabled }: { plan: Plan; trialEnabled: boolean
         </span>
       </Link>
       <div className="flex flex-col gap-4">
-        {plan.features_list?.map((feature, index) => (
+        {generatePlanFeatures(plan).map((feature, index) => (
           <div
             key={index}
             className="text-sm font-normal leading-normal flex gap-3 text-slate-600 dark:text-slate-300"
@@ -77,7 +118,7 @@ export function Pricing() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('plans')
-        .select('id, name, display_name, price_monthly, features_list, is_featured, is_active')
+        .select('id, name, display_name, price_monthly, project_limit, task_limit, features, features_list, is_featured, is_active')
         .eq('is_active', true)
         .order('price_monthly', { ascending: true });
 
