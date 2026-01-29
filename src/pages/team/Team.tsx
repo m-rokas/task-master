@@ -357,23 +357,31 @@ export default function Team() {
         </div>
       )}
 
-      {/* Team Members Section */}
-      {filteredMembers && filteredMembers.filter((m) => !m.projects.some((p) => p.role === 'owner')).length > 0 && (
+      {/* Team Members Section - All members including owners */}
+      {filteredMembers && filteredMembers.length > 0 && (
         <div className="space-y-3">
           <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Team Members
+            All Team Members
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredMembers
-              .filter((m) => !m.projects.some((p) => p.role === 'owner'))
-              .map((member) => (
+            {filteredMembers.map((member) => {
+              const isOwner = member.projects.some((p) => p.role === 'owner');
+              return (
                 <div
                   key={member.user_id}
-                  className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 hover:border-zinc-700 transition-colors"
+                  className={cn(
+                    "rounded-xl p-5 transition-colors",
+                    isOwner
+                      ? "bg-zinc-900 border-2 border-yellow-500/30 hover:border-yellow-500/50"
+                      : "bg-zinc-900 border border-zinc-800 hover:border-zinc-700"
+                  )}
                 >
                   <div className="flex items-start gap-4">
-                    <div className="h-12 w-12 rounded-full bg-zinc-700 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <div className={cn(
+                      "relative h-12 w-12 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0",
+                      isOwner ? "bg-yellow-500/20 border-2 border-yellow-500/50" : "bg-zinc-700"
+                    )}>
                       {member.profiles?.avatar_url ? (
                         <img
                           src={member.profiles.avatar_url}
@@ -381,13 +389,19 @@ export default function Team() {
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <User className="h-6 w-6 text-zinc-400" />
+                        <User className={cn("h-6 w-6", isOwner ? "text-yellow-500" : "text-zinc-400")} />
+                      )}
+                      {isOwner && (
+                        <Crown className="absolute -bottom-1 -right-1 h-4 w-4 text-yellow-500 bg-zinc-900 rounded-full p-0.5" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-white font-medium truncate">
+                      <h3 className="text-white font-medium truncate flex items-center gap-2">
                         {member.profiles?.full_name || 'Unnamed User'}
-                        {member.user_id === user?.id && <span className="text-zinc-500 text-sm ml-2">(You)</span>}
+                        {isOwner && (
+                          <span className="text-xs px-1.5 py-0.5 bg-yellow-500/20 text-yellow-500 rounded">Owner</span>
+                        )}
+                        {member.user_id === user?.id && <span className="text-zinc-500 text-sm">(You)</span>}
                       </h3>
                       <p className="text-xs text-zinc-500 mt-0.5">
                         {member.projects.length} project{member.projects.length !== 1 ? 's' : ''}
@@ -414,13 +428,19 @@ export default function Team() {
                       {member.projects.slice(0, 4).map((project) => (
                         <div
                           key={project.id}
-                          className="flex items-center gap-1.5 px-2 py-1 bg-zinc-800 rounded-lg"
+                          className={cn(
+                            "flex items-center gap-1.5 px-2 py-1 rounded-lg",
+                            project.role === 'owner' ? "bg-yellow-500/10" : "bg-zinc-800"
+                          )}
                         >
                           <span
                             className="w-2 h-2 rounded-full"
                             style={{ backgroundColor: project.color }}
                           />
-                          <span className="text-xs text-zinc-300 truncate max-w-[100px]">
+                          <span className={cn(
+                            "text-xs truncate max-w-[100px]",
+                            project.role === 'owner' ? "text-yellow-200" : "text-zinc-300"
+                          )}>
                             {project.name}
                           </span>
                           <span className={cn('text-xs px-1.5 py-0.5 rounded', roleColors[project.role])}>
@@ -437,12 +457,16 @@ export default function Team() {
                   </div>
 
                   {/* Joined Date */}
-                  <div className="mt-4 pt-4 border-t border-zinc-800 flex items-center gap-2 text-xs text-zinc-500">
+                  <div className={cn(
+                    "mt-4 pt-4 flex items-center gap-2 text-xs text-zinc-500",
+                    isOwner ? "border-t border-yellow-500/20" : "border-t border-zinc-800"
+                  )}>
                     <Calendar className="h-3.5 w-3.5" />
                     Joined {new Date(member.joined_at).toLocaleDateString()}
                   </div>
                 </div>
-              ))}
+              );
+            })}
           </div>
         </div>
       )}

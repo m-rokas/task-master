@@ -596,8 +596,10 @@ export type TaskWithRelations = Task & {
 
 export type ProjectWithRelations = Project & {
   members?: (ProjectMember & { profiles: Profile })[];
+  project_members?: (ProjectMember & { profiles: Profile })[];
   tasks?: Task[];
   labels?: TaskLabel[];
+  task_labels?: TaskLabel[];
   owner?: Profile;
 };
 
