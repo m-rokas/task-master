@@ -89,7 +89,7 @@ export default function Team() {
           user_id,
           role,
           joined_at,
-          profiles (id, full_name, avatar_url),
+          profiles!project_members_user_id_fkey (id, full_name, avatar_url),
           tm_projects (id, name, color)
         `);
 
