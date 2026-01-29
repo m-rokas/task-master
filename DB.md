@@ -942,6 +942,8 @@ CREATE POLICY "Users can delete own uploads" ON storage.objects
 | 2025-01-27 | `20250127_fix_platform_config_rls_v2.sql` | Fix platform_config RLS |
 | 2025-01-27 | `20250127_fix_platform_config_final.sql` | Final platform_config RLS fix |
 | 2025-01-28 | `20250128_fix_signup_plan_selection.sql` | Plan selection during signup + trial |
+| 2025-01-28 | `20250128_fix_security_performance_issues.sql` | Fix RLS policies with optimized auth.uid() |
+| 2025-01-29 | `20250129_fix_missing_rls_policies.sql` | Add missing INSERT/UPDATE/DELETE for tasks, SELECT for comments, assignees policies |
 
 ### Running Migrations
 

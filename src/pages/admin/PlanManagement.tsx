@@ -20,11 +20,13 @@ interface Plan {
   project_limit: number | null;
   task_limit: number | null;
   features: {
-    team?: boolean;
-    labels?: boolean;
-    attachments?: boolean;
+    team_collaboration?: boolean;
+    custom_labels?: boolean;
+    file_attachments?: boolean;
+    advanced_time_tracking?: boolean;
     api_access?: boolean;
     priority_support?: boolean;
+    [key: string]: boolean | undefined;
   };
   price_monthly: number;
   price_yearly: number;
@@ -486,9 +488,10 @@ export default function PlanManagement() {
                 <div className="space-y-4">
                   <h3 className="text-xs font-semibold text-zinc-400 uppercase">Features</h3>
                   {[
-                    { key: 'team', label: 'Team Collaboration', desc: 'Invite team members to projects' },
-                    { key: 'labels', label: 'Custom Labels', desc: 'Create custom task labels' },
-                    { key: 'attachments', label: 'File Attachments', desc: 'Attach files to tasks' },
+                    { key: 'team_collaboration', label: 'Team Collaboration', desc: 'Invite team members to projects' },
+                    { key: 'custom_labels', label: 'Custom Labels', desc: 'Create custom task labels' },
+                    { key: 'file_attachments', label: 'File Attachments', desc: 'Attach files to tasks' },
+                    { key: 'advanced_time_tracking', label: 'Time Tracking', desc: 'Track time on tasks' },
                     { key: 'api_access', label: 'API Access', desc: 'Access REST API' },
                     { key: 'priority_support', label: 'Priority Support', desc: '24/7 priority support' },
                   ].map((feature) => (

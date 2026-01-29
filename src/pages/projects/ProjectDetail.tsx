@@ -27,6 +27,7 @@ import {
   Users,
   Loader2,
   Calendar,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { TaskStatus, TaskWithRelations } from '@/types/database';
@@ -56,6 +57,7 @@ export default function ProjectDetail() {
   const [activeTask, setActiveTask] = useState<TaskWithRelations | null>(null);
   const [newTaskColumn, setNewTaskColumn] = useState<TaskStatus | null>(null);
   const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [taskError, setTaskError] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -102,23 +104,33 @@ export default function ProjectDetail() {
     const task = tasks?.find((t) => t.id === taskId);
     if (!task || task.status === newStatus) return;
 
-    await updateTaskStatus.mutateAsync({
-      taskId,
-      status: newStatus,
-    });
+    try {
+      await updateTaskStatus.mutateAsync({
+        taskId,
+        status: newStatus,
+      });
+      setTaskError(null);
+    } catch (error: any) {
+      setTaskError(error.message || 'Failed to update task status');
+    }
   };
 
   const handleCreateTask = async (status: TaskStatus) => {
     if (!newTaskTitle.trim() || !id) return;
 
-    await createTask.mutateAsync({
-      project_id: id,
-      title: newTaskTitle.trim(),
-      status,
-    });
+    try {
+      await createTask.mutateAsync({
+        project_id: id,
+        title: newTaskTitle.trim(),
+        status,
+      });
 
-    setNewTaskTitle('');
-    setNewTaskColumn(null);
+      setNewTaskTitle('');
+      setNewTaskColumn(null);
+      setTaskError(null);
+    } catch (error: any) {
+      setTaskError(error.message || 'Failed to create task');
+    }
   };
 
   if (projectLoading || tasksLoading) {
@@ -171,6 +183,19 @@ export default function ProjectDetail() {
           </Link>
         </div>
       </div>
+
+      {/* Error Message */}
+      {taskError && (
+        <div className="mb-4 flex items-center gap-2 text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3">
+          <span>{taskError}</span>
+          <button
+            onClick={() => setTaskError(null)}
+            className="ml-auto p-1 hover:bg-red-500/20 rounded"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       {/* Kanban Board */}
       <DndContext

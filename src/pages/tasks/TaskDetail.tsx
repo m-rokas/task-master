@@ -53,6 +53,7 @@ export default function TaskDetail() {
   const [newLabelName, setNewLabelName] = useState('');
   const [newLabelColor, setNewLabelColor] = useState('#6366f1');
   const [isUploadingFile, setIsUploadingFile] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const { data: task, isLoading } = useQuery({
     queryKey: ['task', id],
@@ -281,13 +282,23 @@ export default function TaskDetail() {
   const uploadAttachment = async (file: File) => {
     if (!task || !user) return;
     setIsUploadingFile(true);
+    setUploadError(null);
+
+    // Validate file size (10MB limit)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setUploadError('File size exceeds 10MB limit');
+      setIsUploadingFile(false);
+      return;
+    }
+
     try {
       const filePath = `tasks/${task.id}/${Date.now()}_${file.name}`;
-      const { error: uploadError } = await supabase.storage
+      const { error: storageError } = await supabase.storage
         .from('attachments')
         .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+      if (storageError) throw storageError;
 
       const { error: dbError } = await supabase.from('task_attachments').insert({
         task_id: task.id,
@@ -298,10 +309,16 @@ export default function TaskDetail() {
         file_type: file.type,
       });
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        // Clean up the uploaded file if DB insert fails
+        await supabase.storage.from('attachments').remove([filePath]);
+        throw dbError;
+      }
+
       queryClient.invalidateQueries({ queryKey: ['task', id] });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload error:', error);
+      setUploadError(error.message || 'Failed to upload file');
     } finally {
       setIsUploadingFile(false);
     }
@@ -608,41 +625,55 @@ export default function TaskDetail() {
 
               {/* Upload Area - only for paid plans */}
               {hasFeature('file_attachments') ? (
-                <label className="block">
-                  <div className={cn(
-                    "border-2 border-dashed border-zinc-700 rounded-lg p-6 text-center cursor-pointer hover:border-primary transition-colors",
-                    isUploadingFile && "opacity-50 cursor-not-allowed"
-                  )}>
-                    <input
-                      type="file"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          uploadAttachment(file);
-                          e.target.value = '';
-                        }
-                      }}
-                      disabled={isUploadingFile}
-                    />
-                    {isUploadingFile ? (
-                      <div className="flex items-center justify-center gap-2">
-                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                        <span className="text-sm text-zinc-400">Uploading...</span>
-                      </div>
-                    ) : (
-                      <>
-                        <Paperclip className="h-8 w-8 text-zinc-500 mx-auto mb-2" />
-                        <p className="text-sm text-zinc-400">
-                          Click to upload or drag and drop
-                        </p>
-                        <p className="text-xs text-zinc-500 mt-1">
-                          Max file size: 10MB
-                        </p>
-                      </>
-                    )}
-                  </div>
-                </label>
+                <div className="space-y-2">
+                  <label className="block">
+                    <div className={cn(
+                      "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
+                      uploadError ? "border-red-500/50 hover:border-red-500" : "border-zinc-700 hover:border-primary",
+                      isUploadingFile && "opacity-50 cursor-not-allowed"
+                    )}>
+                      <input
+                        type="file"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            uploadAttachment(file);
+                            e.target.value = '';
+                          }
+                        }}
+                        disabled={isUploadingFile}
+                      />
+                      {isUploadingFile ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                          <span className="text-sm text-zinc-400">Uploading...</span>
+                        </div>
+                      ) : (
+                        <>
+                          <Paperclip className="h-8 w-8 text-zinc-500 mx-auto mb-2" />
+                          <p className="text-sm text-zinc-400">
+                            Click to upload or drag and drop
+                          </p>
+                          <p className="text-xs text-zinc-500 mt-1">
+                            Max file size: 10MB
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  </label>
+                  {uploadError && (
+                    <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 rounded-lg px-3 py-2">
+                      <span>{uploadError}</span>
+                      <button
+                        onClick={() => setUploadError(null)}
+                        className="ml-auto p-1 hover:bg-red-500/20 rounded"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <Link
                   to="/billing"
