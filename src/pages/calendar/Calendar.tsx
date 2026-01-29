@@ -63,10 +63,16 @@ export default function Calendar() {
         throw new Error('Please fill in all fields');
       }
 
+      // Format date in local timezone to avoid UTC offset issues
+      const year = selectedDate.getFullYear();
+      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(selectedDate.getDate()).padStart(2, '0');
+      const dueDateStr = `${year}-${month}-${day}`;
+
       const { error } = await supabase.from('tm_tasks').insert({
         title: newTaskTitle.trim(),
         project_id: newTaskProject,
-        due_date: selectedDate.toISOString().split('T')[0],
+        due_date: dueDateStr,
         priority: newTaskPriority,
         status: 'todo',
         created_by: user?.id,
