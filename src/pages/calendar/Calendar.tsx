@@ -1,12 +1,14 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   ChevronLeft,
   ChevronRight,
   Loader2,
+  Plus,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -45,8 +47,49 @@ const MONTHS = [
 
 export default function Calendar() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedProject, setSelectedProject] = useState<string>('all');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskProject, setNewTaskProject] = useState<string>('');
+  const [newTaskPriority, setNewTaskPriority] = useState<string>('medium');
+
+  // Create task mutation
+  const createTask = useMutation({
+    mutationFn: async () => {
+      if (!newTaskTitle.trim() || !newTaskProject || !selectedDate) {
+        throw new Error('Please fill in all fields');
+      }
+
+      const { error } = await supabase.from('tm_tasks').insert({
+        title: newTaskTitle.trim(),
+        project_id: newTaskProject,
+        due_date: selectedDate.toISOString().split('T')[0],
+        priority: newTaskPriority,
+        status: 'todo',
+        created_by: user?.id,
+      });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calendar-tasks'] });
+      setShowCreateModal(false);
+      setNewTaskTitle('');
+      setNewTaskProject('');
+      setNewTaskPriority('medium');
+      setSelectedDate(null);
+    },
+  });
+
+  const handleDayClick = (date: Date) => {
+    setSelectedDate(date);
+    const firstProject = projects?.[0] as { id: string } | undefined;
+    setNewTaskProject(selectedProject !== 'all' ? selectedProject : (firstProject?.id || ''));
+    setShowCreateModal(true);
+  };
 
   // Fetch all projects user has access to
   const { data: projects } = useQuery({
@@ -251,8 +294,9 @@ export default function Calendar() {
           {calendarDays.map((day, index) => (
             <div
               key={index}
+              onClick={() => handleDayClick(day.date)}
               className={cn(
-                'min-h-[120px] p-2 border-b border-r border-zinc-800',
+                'min-h-[120px] p-2 border-b border-r border-zinc-800 cursor-pointer hover:bg-zinc-800/50 transition-colors group',
                 !day.isCurrentMonth && 'bg-zinc-900/50',
                 index % 7 === 6 && 'border-r-0',
                 index >= calendarDays.length - 7 && 'border-b-0'
@@ -271,9 +315,12 @@ export default function Calendar() {
                 >
                   {day.date.getDate()}
                 </span>
-                {day.tasks.length > 0 && (
-                  <span className="text-xs text-zinc-500">{day.tasks.length}</span>
-                )}
+                <div className="flex items-center gap-1">
+                  {day.tasks.length > 0 && (
+                    <span className="text-xs text-zinc-500">{day.tasks.length}</span>
+                  )}
+                  <Plus className="h-4 w-4 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </div>
 
               {/* Tasks for this day */}
@@ -331,6 +378,97 @@ export default function Calendar() {
           Done
         </div>
       </div>
+
+      {/* Create Task Modal */}
+      {showCreateModal && selectedDate && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white">Create Task</h2>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="p-1 text-zinc-400 hover:text-white"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <p className="text-zinc-400 text-sm mb-4">
+              Due date: <span className="text-white font-medium">{selectedDate.toLocaleDateString('lt-LT', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-zinc-400 mb-1">
+                  Task Title
+                </label>
+                <input
+                  type="text"
+                  value={newTaskTitle}
+                  onChange={(e) => setNewTaskTitle(e.target.value)}
+                  placeholder="Enter task title..."
+                  autoFocus
+                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-zinc-400 mb-1">
+                  Project
+                </label>
+                <select
+                  value={newTaskProject}
+                  onChange={(e) => setNewTaskProject(e.target.value)}
+                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="">Select project...</option>
+                  {projects?.map((project: any) => (
+                    <option key={project.id} value={project.id}>
+                      {project.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-zinc-400 mb-1">
+                  Priority
+                </label>
+                <select
+                  value={newTaskPriority}
+                  onChange={(e) => setNewTaskPriority(e.target.value)}
+                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="urgent">Urgent</option>
+                </select>
+              </div>
+
+              {createTask.error && (
+                <p className="text-red-500 text-sm">{(createTask.error as Error).message}</p>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="px-4 py-2 text-zinc-400 hover:text-white"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => createTask.mutate()}
+                disabled={!newTaskTitle.trim() || !newTaskProject || createTask.isPending}
+                className="px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50"
+              >
+                {createTask.isPending ? 'Creating...' : 'Create Task'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
