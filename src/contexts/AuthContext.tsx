@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setPlan(plans);
     }
 
-    // Fetch active subscription
+    // Fetch active subscription (use maybeSingle to handle no subscription case)
     const { data: subData } = await supabase
       .from('subscriptions')
       .select('*')
@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .in('status', ['active', 'trialing'])
       .order('created_at', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     setSubscription(subData);
   };
