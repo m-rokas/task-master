@@ -249,6 +249,43 @@ Project team membership (many-to-many).
 
 ---
 
+### 5.5 project_role_permissions
+
+Customizable permissions for each role per project. Only project owners can view/edit these settings.
+
+| Column | Type | Nullable | Default | Description |
+|--------|------|----------|---------|-------------|
+| `id` | UUID | NO | gen_random_uuid() | Primary key |
+| `project_id` | UUID | NO | - | FK to tm_projects |
+| `role` | TEXT | NO | - | 'admin', 'member', or 'viewer' |
+| `can_manage_tasks` | BOOLEAN | NO | false | Create/edit/delete tasks |
+| `can_assign_tasks` | BOOLEAN | NO | false | Assign users to tasks |
+| `can_comment` | BOOLEAN | NO | false | Add comments |
+| `can_manage_labels` | BOOLEAN | NO | false | Create/edit labels |
+| `can_upload_files` | BOOLEAN | NO | false | Upload attachments |
+| `can_invite_members` | BOOLEAN | NO | false | Invite new members |
+| `can_remove_members` | BOOLEAN | NO | false | Remove members |
+| `can_change_roles` | BOOLEAN | NO | false | Change member roles |
+| `can_edit_project` | BOOLEAN | NO | false | Edit project settings |
+| `can_view_time_entries` | BOOLEAN | NO | false | View others' time entries |
+| `created_at` | TIMESTAMPTZ | NO | now() | - |
+| `updated_at` | TIMESTAMPTZ | NO | now() | - |
+
+**Constraints:**
+- PRIMARY KEY (`id`)
+- UNIQUE (`project_id`, `role`)
+- FOREIGN KEY (`project_id`) REFERENCES `tm_projects(id)` ON DELETE CASCADE
+- CHECK (`role` IN ('admin', 'member', 'viewer'))
+
+**Default Permissions:**
+| Role | Tasks | Assign | Comment | Labels | Files | Invite | Remove | Roles | Edit | Time |
+|------|-------|--------|---------|--------|-------|--------|--------|-------|------|------|
+| admin | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ |
+| member | ✓ | ✓ | ✓ | ✗ | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ |
+| viewer | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
+
+---
+
 ### 6. tm_tasks
 
 Task records.
@@ -944,6 +981,7 @@ CREATE POLICY "Users can delete own uploads" ON storage.objects
 | 2025-01-28 | `20250128_fix_signup_plan_selection.sql` | Plan selection during signup + trial |
 | 2025-01-28 | `20250128_fix_security_performance_issues.sql` | Fix RLS policies with optimized auth.uid() |
 | 2025-01-29 | `20250129_fix_missing_rls_policies.sql` | Add missing INSERT/UPDATE/DELETE for tasks, SELECT for comments, assignees policies |
+| 2025-01-29 | `20250129_fix_rls_recursion_and_team_collab.sql` | Fix RLS infinite recursion, add role-based permissions, team collaboration settings |
 
 ### Running Migrations
 
@@ -1027,4 +1065,4 @@ GROUP BY status;
 
 ---
 
-*Last updated: 2025-01-28*
+*Last updated: 2025-01-29*
