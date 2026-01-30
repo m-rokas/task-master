@@ -16,6 +16,7 @@ import {
   Edit3,
   MoreVertical,
   Shield,
+  Lock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -44,7 +45,7 @@ export default function ProjectSettings() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, hasFeature } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'general' | 'members' | 'permissions'>('general');
 
@@ -63,6 +64,7 @@ export default function ProjectSettings() {
   const [projectName, setProjectName] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
   const [projectColor, setProjectColor] = useState('#6366f1');
+  const [projectIsPersonal, setProjectIsPersonal] = useState(true);
 
   // Fetch project
   const { data: project, isLoading: projectLoading } = useQuery({
@@ -165,6 +167,7 @@ export default function ProjectSettings() {
           name: projectName,
           description: projectDescription || null,
           color: projectColor,
+          is_personal: projectIsPersonal,
         })
         .eq('id', id);
 
@@ -260,12 +263,16 @@ export default function ProjectSettings() {
 
   const canManageMembers = currentUserMembership?.role === 'owner' || currentUserMembership?.role === 'admin';
   const isOwner = currentUserMembership?.role === 'owner';
+  const canUseTeam = hasFeature('team_collaboration');
+  const isPersonalProject = project?.is_personal === true;
+  const canAddMembers = canManageMembers && canUseTeam && !isPersonalProject;
 
   const startEditingProject = () => {
     if (project) {
       setProjectName(project.name);
       setProjectDescription(project.description || '');
       setProjectColor(project.color);
+      setProjectIsPersonal(project.is_personal ?? true);
       setEditingProject(true);
     }
   };
@@ -391,6 +398,45 @@ export default function ProjectSettings() {
                     className="w-12 h-10 rounded cursor-pointer"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-zinc-400 mb-3">Project Type</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setProjectIsPersonal(true)}
+                      className={cn(
+                        'p-3 rounded-lg border text-left transition-colors',
+                        projectIsPersonal
+                          ? 'border-primary bg-primary/10 text-white'
+                          : 'border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-600'
+                      )}
+                    >
+                      <p className="font-medium text-sm">Personal</p>
+                      <p className="text-xs mt-1 opacity-70">Only you can access</p>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => canUseTeam && setProjectIsPersonal(false)}
+                      disabled={!canUseTeam}
+                      className={cn(
+                        'p-3 rounded-lg border text-left transition-colors relative',
+                        !canUseTeam
+                          ? 'border-zinc-700 bg-zinc-800/50 text-zinc-500 cursor-not-allowed'
+                          : !projectIsPersonal
+                          ? 'border-primary bg-primary/10 text-white'
+                          : 'border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-600'
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <p className="font-medium text-sm">Team</p>
+                        {!canUseTeam && <Lock className="h-3 w-3 text-zinc-500" />}
+                      </div>
+                      <p className="text-xs mt-1 opacity-70">
+                        {canUseTeam ? 'Invite team members' : 'Upgrade plan'}
+                      </p>
+                    </button>
+                  </div>
+                </div>
                 <div className="flex gap-3">
                   <button
                     onClick={() => updateProject.mutate()}
@@ -415,6 +461,16 @@ export default function ProjectSettings() {
                     <p className="text-white font-medium">{project.name}</p>
                     <p className="text-sm text-zinc-400">{project.description || 'No description'}</p>
                   </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={cn(
+                    'text-xs px-2 py-1 rounded-full',
+                    project.is_personal
+                      ? 'bg-zinc-700 text-zinc-300'
+                      : 'bg-primary/20 text-primary'
+                  )}>
+                    {project.is_personal ? 'Personal Project' : 'Team Project'}
+                  </span>
                 </div>
                 {(isOwner || canManageMembers) && (
                   <button
@@ -457,10 +513,26 @@ export default function ProjectSettings() {
         <div className="space-y-6">
           {/* Add Member Button */}
           {canManageMembers && (
-            <div className="flex justify-end">
+            <div className="flex items-center justify-between">
+              {/* Show restriction message if applicable */}
+              {(isPersonalProject || !canUseTeam) && (
+                <div className="flex items-center gap-2 text-sm text-zinc-400">
+                  <Lock className="h-4 w-4" />
+                  {isPersonalProject
+                    ? 'This is a personal project. Change to team project in General settings to add members.'
+                    : 'Upgrade your plan to add team members.'}
+                </div>
+              )}
+              {!isPersonalProject && !canUseTeam && <div />}
               <button
                 onClick={() => setShowInviteModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90"
+                disabled={!canAddMembers}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-lg font-medium",
+                  canAddMembers
+                    ? "bg-primary text-white hover:bg-primary/90"
+                    : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
+                )}
               >
                 <UserPlus className="h-4 w-4" />
                 Add Member

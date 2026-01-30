@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCreateProject } from '@/hooks/useProjects';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { ArrowLeft, Loader2, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const COLORS = [
@@ -19,12 +20,15 @@ const COLORS = [
 
 export default function NewProject() {
   const navigate = useNavigate();
+  const { hasFeature } = useAuth();
   const createProject = useCreateProject();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [color, setColor] = useState(COLORS[0]);
   const [isPersonal, setIsPersonal] = useState(true);
   const [error, setError] = useState('');
+
+  const canUseTeam = hasFeature('team_collaboration');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,16 +153,24 @@ export default function NewProject() {
               </button>
               <button
                 type="button"
-                onClick={() => setIsPersonal(false)}
+                onClick={() => canUseTeam && setIsPersonal(false)}
+                disabled={!canUseTeam}
                 className={cn(
-                  'p-4 rounded-lg border text-left transition-colors',
-                  !isPersonal
+                  'p-4 rounded-lg border text-left transition-colors relative',
+                  !canUseTeam
+                    ? 'border-zinc-700 bg-zinc-800/50 text-zinc-500 cursor-not-allowed'
+                    : !isPersonal
                     ? 'border-primary bg-primary/10 text-white'
                     : 'border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-600'
                 )}
               >
-                <p className="font-medium">Team</p>
-                <p className="text-sm mt-1 opacity-70">Invite team members</p>
+                <div className="flex items-center justify-between">
+                  <p className="font-medium">Team</p>
+                  {!canUseTeam && <Lock className="h-4 w-4 text-zinc-500" />}
+                </div>
+                <p className="text-sm mt-1 opacity-70">
+                  {canUseTeam ? 'Invite team members' : 'Upgrade plan to enable'}
+                </p>
               </button>
             </div>
           </div>
